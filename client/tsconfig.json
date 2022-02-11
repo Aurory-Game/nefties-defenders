@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "target": "ES6",
+        "noEmit": true,
+        "moduleResolution": "node",
+    },
+    "include": [
+        "./src/**/*.ts"
+    ]
+}

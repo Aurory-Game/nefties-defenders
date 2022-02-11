@@ -1,0 +1,19 @@
+{
+  "name": "cr-prototype",
+  "author": "Peter Achberger",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "dev": "esbuild src/CrPrototype.ts --bundle --outfile=public/game.js --global-name=bundle --servedir=public --serve=5000",
+    "typecheck": "tsc -watch",
+    "build": "tsc && esbuild src/CrPrototype.ts --bundle --outfile=public/game.js --global-name=bundle --minify"
+  },
+  "version": "1.0.0",
+  "dependencies": {
+    "esbuild": "^0.14.21",
+    "phaser": "^3.55.2"
+  },
+  "devDependencies": {
+    "typescript": "^4.5.5"
+  }
+}
