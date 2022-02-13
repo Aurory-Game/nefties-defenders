@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "outDir": "./build",
+        "target": "ES6",
+        "module": "commonjs",
+        "removeComments": true,
+        "experimentalDecorators": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "moduleResolution": "node"
+    },
+    "include": [
+        "./src/**/*.ts"
+    ]
+}
+

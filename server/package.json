@@ -1,0 +1,19 @@
+{
+    "name": "cr-prototype-server",
+    "author": "Peter Achberger",
+    "license": "UNLICENSED",
+    "private": true,
+    "scripts": {
+        "build": "tsc",
+        "start": "ts-node src/CrPrototypeServer.ts",
+        "start:prod": "node build/server/src/CrPrototypeServer.js"
+    },
+    "version": "1.0.0",
+    "dependencies": {
+        "colyseus": "^0.14.23",
+        "typescript": "^4.5.5"
+    },
+    "devDependencies": {
+        "ts-node": "^10.5.0"
+    }
+}
