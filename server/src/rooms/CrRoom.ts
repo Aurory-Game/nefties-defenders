@@ -1,5 +1,5 @@
-import { Client, Room } from "colyseus";
-import { CrRoomSync } from "../schema/CrRoomSync";
+import { Client, Room } from 'colyseus';
+import { CrRoomSync } from '../schema/CrRoomSync';
 
 export default class CrRoom extends Room<CrRoomSync> {
 

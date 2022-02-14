@@ -1,5 +1,5 @@
-import * as Phaser from "phaser";
-import Menu from "./scenes/Menu";
+import * as Phaser from 'phaser';
+import Menu from './scenes/Menu';
 
 export class CrPrototype {
 

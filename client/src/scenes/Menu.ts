@@ -17,6 +17,6 @@ const BUTTON_TEXT_STYLE:Phaser.Types.GameObjects.Text.TextStyle = {
     stroke: '#222222',
     fontSize: '32px',
     backgroundColor: '#113333',
-    // @ts-ignore
+    // @ts-expect-error wrong Phaser's types
     padding: 10,
 };
