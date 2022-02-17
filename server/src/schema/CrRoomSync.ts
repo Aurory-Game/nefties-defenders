@@ -1,6 +1,6 @@
 import { MapSchema, Schema, filter, type } from '@colyseus/schema';
 import { Client } from 'colyseus';
-import { GAME_STATE } from '../../../shared/GAME_STATE';
+import { GAME_STATE } from 'shared/GAME_STATE';
 
 export class PlayerSecretSync extends Schema {
     /** Player's current mana. */

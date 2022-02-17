@@ -1,8 +1,18 @@
 {
     "compilerOptions": {
+        "baseUrl": ".",
         "target": "ES6",
         "noEmit": true,
         "moduleResolution": "node",
+        "experimentalDecorators": true,
+        "paths": {
+            "shared/*": [
+                "../shared/*"
+            ],
+            "schema/*": [
+                "./schema/*"
+            ]
+        }
     },
     "include": [
         "./src/**/*.ts"

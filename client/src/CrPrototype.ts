@@ -1,4 +1,5 @@
 import * as Phaser from 'phaser';
+import Game from './scenes/Game';
 import Menu from './scenes/Menu';
 
 export class CrPrototype {
@@ -15,7 +16,7 @@ export class CrPrototype {
                 autoCenter: Phaser.Scale.CENTER_BOTH
             },
             type: Phaser.AUTO,
-            scene: [Menu],
+            scene: [Menu, Game],
         });
     }
 }

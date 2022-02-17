@@ -10,6 +10,7 @@
   },
   "version": "1.0.0",
   "dependencies": {
+    "colyseus.js": "^0.14.13",
     "esbuild": "^0.14.21",
     "phaser": "^3.55.2"
   },

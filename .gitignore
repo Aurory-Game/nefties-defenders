@@ -1,3 +1,4 @@
 node_modules/
 build/
 client/public/game.js
+client/schema/
