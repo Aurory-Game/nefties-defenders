@@ -1,0 +1,5 @@
+{
+    "browser": {
+        "./now.ts": "./now.browser.ts"
+    }
+}
