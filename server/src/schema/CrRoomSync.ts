@@ -4,16 +4,16 @@ import { GAME_STATE } from 'shared/GAME_STATE';
 
 export class PlayerSecretSync extends Schema {
     /** Player's current mana. */
-    @type('uint8') mana: number = 0;
+    @type('uint8') mana:number = 0;
 }
 
 export class PlayerSync extends Schema {
     /** Player's name. */
-    @type('string') name: string;
+    @type('string') name:string;
     /** Player's sync data that are only send to them. */
     @filter(onlyOwnerPlayer)
     @type(PlayerSecretSync) secret = new PlayerSecretSync();
-    constructor(name: string) {
+    constructor(name:string) {
         super();
         this.name = name;
     }

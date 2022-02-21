@@ -4,7 +4,7 @@ import Menu from './scenes/Menu';
 
 export class CrPrototype {
 
-    public phaser: Phaser.Game;
+    public phaser:Phaser.Game;
 
     constructor() {
         this.phaser = new Phaser.Game({

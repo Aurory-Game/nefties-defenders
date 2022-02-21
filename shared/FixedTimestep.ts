@@ -1,27 +1,27 @@
 export default class FixedTimestep {
 
     public timestep:number;
-    public onTick:()=>void;
+    public onTick:() => void;
     public ticks:number = 0;
     public startTime:number = 0;
-    
+
     private enabled:boolean = false;
     private nextTick:number = 0;
     private timeout!:number;
 
-    constructor(timestep:number, onTick:()=>void) {
+    constructor(timestep:number, onTick:() => void) {
         this.timestep = timestep;
         this.onTick = onTick;
     }
-    
+
     isEnabled() {
         return this.enabled;
     }
-    
-    hasStarted(): boolean {
+
+    hasStarted():boolean {
         return this.enabled && performance.now() >= this.startTime;
     }
-    
+
     start(startTime = performance.now(), nextTick = startTime, initTick = -1):void { // Default starts at 0 ticks.
         this.enabled = true;
         this.ticks = initTick;
@@ -76,7 +76,7 @@ export default class FixedTimestep {
 
 type CurrentTime = {
     /** Current continuous game time in ms. */
-    time: number;
+    time:number;
     /** Progress towards the next tick. */
-    alpha: number;
+    alpha:number;
 }

@@ -1,5 +1,13 @@
 module.exports = {
     root: true,
+    parser: '@typescript-eslint/parser',
+    plugins: [
+        '@typescript-eslint',
+    ],
+    extends: [
+        'eslint:recommended',
+        'plugin:@typescript-eslint/recommended',
+    ],
     rules: {
         'indent': ['error', 4],
         'linebreak-style': ['error', 'windows'],
@@ -16,9 +24,11 @@ module.exports = {
         'no-multi-spaces': ['error'],
         'no-multiple-empty-lines': ['error', { 'max': 1, 'maxEOF': 0, 'maxBOF': 0 }],
         'eol-last': ['error', 'always'],
-        'sort-imports': ['error', { 'ignoreDeclarationSort': true }]
+        'sort-imports': ['error', { 'ignoreDeclarationSort': true }],
+        '@typescript-eslint/no-inferrable-types': 'off',
+        '@typescript-eslint/type-annotation-spacing': [
+            'error',
+            { before: false, after: false, overrides: { arrow: { before: true, after: true } } }
+        ],
     },
-    extends: [
-        'eslint:recommended',
-    ],
 };
