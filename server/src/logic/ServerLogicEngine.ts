@@ -1,5 +1,5 @@
 import { Client } from 'colyseus';
-import { TICKS_3S } from 'shared/constants';
+import { MANA_MAX, MANA_REGEN_TICKS, TICKS_3S } from 'shared/constants';
 import { GAME_STATE } from 'shared/GAME_STATE';
 import CrRoom from 'src/rooms/CrRoom';
 import { CrRoomSync, PlayerSync } from 'src/schema/CrRoomSync';
@@ -9,6 +9,8 @@ export default class ServerLogicEngine {
     private room:CrRoom;
     private sync:CrRoomSync;
     private players:Map<string, PlayerData>;
+
+    private manaRegenTicksLeft:number = MANA_REGEN_TICKS;
 
     constructor(room:CrRoom) {
         this.room = room;
@@ -21,7 +23,6 @@ export default class ServerLogicEngine {
         this.sync.players.set(client.sessionId, playerSync);
 
         const data:PlayerData = {
-            manaUsed: 0,
             sync: playerSync,
         };
         this.players.set(client.sessionId, data);
@@ -59,12 +60,19 @@ export default class ServerLogicEngine {
     }
 
     gameLogic() {
-        // TODO
+        // Mana regen.
+        if (--this.manaRegenTicksLeft <= 0) {
+            this.manaRegenTicksLeft += MANA_REGEN_TICKS;
+            for (const player of this.players.values()) {
+                if (player.sync.secret.mana < MANA_MAX)
+                    player.sync.secret.mana++;
+            }
+        }
+        console.log([...this.players.values()].map(p => p.sync.secret.mana));
     }
 
 }
 
 type PlayerData = {
-    manaUsed:number,
     sync:PlayerSync,
 }
