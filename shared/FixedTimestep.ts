@@ -1,5 +1,3 @@
-import now from './now';
-
 export default class FixedTimestep {
 
     public timestep:number;
@@ -15,17 +13,27 @@ export default class FixedTimestep {
         this.timestep = timestep;
         this.onTick = onTick;
     }
-
-    hasStarted(): boolean {
-        return this.enabled && now() >= this.startTime;
+    
+    isEnabled() {
+        return this.enabled;
     }
-
-    start(startTime = now(), nextTick = startTime, initTick = -1):void { // Default starts at 0 ticks.
+    
+    hasStarted(): boolean {
+        return this.enabled && performance.now() >= this.startTime;
+    }
+    
+    start(startTime = performance.now(), nextTick = startTime, initTick = -1):void { // Default starts at 0 ticks.
         this.enabled = true;
         this.ticks = initTick;
         this.startTime = startTime;
         this.nextTick = nextTick;
         this.tick();
+    }
+
+    /** Start the loop immediately, with the supplied tick being considered as `now`. */
+    startNowAtTick(tick:number) {
+        const timeNow = performance.now();
+        this.start(timeNow - tick * this.timestep, timeNow, tick - 1);
     }
 
     stop():void {
@@ -37,12 +45,12 @@ export default class FixedTimestep {
         if (!this.enabled) return;
         // Step if within 3ms of the target.
         // This value should be configured based on expected event loop lag.
-        if (now() - this.nextTick > -3) {
+        if (performance.now() - this.nextTick > -3) {
             this.ticks++;
             this.nextTick += this.timestep;
             this.onTick();
         }
-        this.timeout = setTimeout(() => this.tick(), this.nextTick - now()) as unknown as number;
+        this.timeout = setTimeout(() => this.tick(), this.nextTick - performance.now()) as unknown as number;
     }
 
     /**
@@ -53,7 +61,7 @@ export default class FixedTimestep {
     }
 
     getCurrentTime():CurrentTime {
-        const time = now();
+        const time = performance.now();
         return {
             time: time - this.startTime,
             alpha: 1 - (this.nextTick - time) / this.timestep

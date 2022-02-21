@@ -11,6 +11,10 @@ module.exports = {
         'plugin:@typescript-eslint/recommended',
     ],
     rules: {
-        '@typescript-eslint/no-inferrable-types': 'off'
+        '@typescript-eslint/no-inferrable-types': 'off',
+        '@typescript-eslint/type-annotation-spacing': [
+            'error',
+            { before: false, after: false, overrides: { arrow: { before: true, after: true } } }
+        ]
     }
 };

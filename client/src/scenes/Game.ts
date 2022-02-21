@@ -16,13 +16,13 @@ export default class Game extends Phaser.Scene {
         startMatch(this);
     }
 
-    updateText(gameState:GAME_STATE) {
+    updateText(gameState:GAME_STATE, secondsLeft:number) {
         switch (gameState) {
         case GAME_STATE.WAITING:
             this.infoTx.setText('WAITING FOR MORE PLAYERS').setVisible(true);
             break;
         case GAME_STATE.STARTING:
-            this.infoTx.setText('GAME STARTING').setVisible(true);
+            this.infoTx.setText(`GAME STARTING IN ${secondsLeft}`).setVisible(true);
             break;
         case GAME_STATE.PLAYING:
             this.infoTx.setVisible(false);
