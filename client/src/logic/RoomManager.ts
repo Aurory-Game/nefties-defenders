@@ -6,6 +6,7 @@ import { MENU_KEY } from 'src/scenes/Menu';
 import { GAME_STATE } from 'shared/GAME_STATE';
 import FixedTimestep from 'shared/FixedTimestep';
 import InitTimeSync from './InitTimeSync';
+import { PlayerSync } from 'schema/PlayerSync';
 
 class RoomManager {
 
@@ -13,6 +14,7 @@ class RoomManager {
     private room:Room<CrRoomSync>;
     private sync:CrRoomSync;
 
+    private ourPlayer:PlayerSync;
     private timestep:FixedTimestep;
     private initTimeSync:InitTimeSync;
 
@@ -28,6 +30,11 @@ class RoomManager {
                 this.timestep.startNowAtTick(this.sync.tick);
             }
         });
+        this.sync.players.onAdd = (player, key) => {
+            if (key == room.sessionId) {
+                this.ourPlayer = player;
+            }
+        };
         this.initTimeSync = new InitTimeSync(TIMESTEP);
         this.timestep = new FixedTimestep(TIMESTEP, () => this.update());
         this.room.onLeave(code => {
@@ -35,8 +42,14 @@ class RoomManager {
             if (code > 1000) this.disconnected();
         });
         this.room.onError(() => this.disconnected());
+        this.game.events.on(Phaser.Scenes.Events.PRE_UPDATE, () => {
+            // This is driven by RAF. We check if fixed timestep needs to run, then render.
+            this.timestep.tick();
+            this.game.render(this.timestep.getCurrentTime().time);
+        });
         this.game.events.once('shutdown', () => {
             if (this.timestep) this.timestep.stop();
+            this.game.events.off(Phaser.Scenes.Events.PRE_UPDATE);
             this.game = null;
             this.room?.removeAllListeners();
             this.room?.leave();
@@ -65,6 +78,9 @@ class RoomManager {
         if (this.sync.state != GAME_STATE.PLAYING) {
             this.updateText();
         }
+        if (!this.ourPlayer) return;
+        // TODO mana prediction and interpolation.
+        this.game.manaBar.setMana(this.ourPlayer.secret.mana);
     }
 
     updateText() {

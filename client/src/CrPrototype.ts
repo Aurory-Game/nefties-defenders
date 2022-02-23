@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import Game from './scenes/Game';
+import Game, { HEIGHT, WIDTH } from './scenes/Game';
 import Menu from './scenes/Menu';
 
 export class CrPrototype {
@@ -10,8 +10,8 @@ export class CrPrototype {
         this.phaser = new Phaser.Game({
             backgroundColor: 0x636363,
             scale: {
-                width: 960,
-                height: 1280,
+                width: WIDTH,
+                height: HEIGHT,
                 mode: Phaser.Scale.FIT,
                 autoCenter: Phaser.Scale.CENTER_BOTH
             },

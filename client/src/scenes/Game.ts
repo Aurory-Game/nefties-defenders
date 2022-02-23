@@ -1,8 +1,10 @@
 import { startMatch } from 'src/logic/RoomManager';
 import { GAME_STATE } from 'shared/GAME_STATE';
+import ManaBar from 'src/render/ManaBar';
 
 export default class Game extends Phaser.Scene {
 
+    public manaBar:ManaBar;
     private infoTx:Phaser.GameObjects.Text;
 
     constructor() {
@@ -14,6 +16,12 @@ export default class Game extends Phaser.Scene {
             .setFontSize(18)
             .setOrigin(0.5);
         startMatch(this);
+        this.manaBar = new ManaBar(this);
+    }
+
+    /** Custom update function called by `RoomManager` server-synced time. */
+    render(time:number) {
+        // TODO interpolate mana regen progress.
     }
 
     updateText(gameState:GAME_STATE, secondsLeft:number) {
@@ -36,3 +44,5 @@ export default class Game extends Phaser.Scene {
 }
 
 export const GAME_KEY:string = 'Game';
+export const WIDTH:number = 960;
+export const HEIGHT:number = 1280;

@@ -10,8 +10,6 @@ export default class ServerLogicEngine {
     private sync:CrRoomSync;
     private players:Map<string, PlayerData>;
 
-    private manaRegenTicksLeft:number = MANA_REGEN_TICKS;
-
     constructor(room:CrRoom) {
         this.room = room;
         this.sync = room.state;
@@ -45,6 +43,7 @@ export default class ServerLogicEngine {
         case GAME_STATE.STARTING:
             if (this.sync.tick >= this.sync.nextStateAt) {
                 this.sync.state = GAME_STATE.PLAYING;
+                this.players.forEach(this.resetManaRegenTick, this);
             }
             break;
         case GAME_STATE.PLAYING:{
@@ -61,14 +60,18 @@ export default class ServerLogicEngine {
 
     gameLogic() {
         // Mana regen.
-        if (--this.manaRegenTicksLeft <= 0) {
-            this.manaRegenTicksLeft += MANA_REGEN_TICKS;
-            for (const player of this.players.values()) {
-                if (player.sync.secret.mana < MANA_MAX)
-                    player.sync.secret.mana++;
+        for (const player of this.players.values()) {
+            const secret = player.sync.secret;
+            if (secret.mana < MANA_MAX && this.sync.tick >= secret.manaRegenTick) {
+                secret.mana++;
+                this.resetManaRegenTick(player);
+                // TODO on mana use, if it was maxed, reset the `manaRegenTick`.
             }
         }
-        console.log([...this.players.values()].map(p => p.sync.secret.mana));
+    }
+
+    resetManaRegenTick(player:PlayerData):void {
+        player.sync.secret.manaRegenTick = this.sync.tick + MANA_REGEN_TICKS;
     }
 
 }
