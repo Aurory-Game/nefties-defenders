@@ -6,8 +6,8 @@ import { GAME_STATE } from 'shared/GAME_STATE';
 export class PlayerSecretSync extends Schema {
     /** Player's current mana. */
     @type('uint8') mana:number = MANA_START;
-    /** The tick that mana will regenerate on. */
-    @type('uint16') manaRegenTick:number = 0;
+    /** The last tick that mana regenerated on. */
+    @type('uint16') manaRegenLastTick:number = 0;
 }
 
 export class PlayerSync extends Schema {

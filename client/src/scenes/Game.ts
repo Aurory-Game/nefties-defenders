@@ -21,7 +21,7 @@ export default class Game extends Phaser.Scene {
 
     /** Custom update function called by `RoomManager` server-synced time. */
     render(time:number) {
-        // TODO interpolate mana regen progress.
+        this.manaBar.update(time);
     }
 
     updateText(gameState:GAME_STATE, secondsLeft:number) {

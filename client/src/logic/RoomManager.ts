@@ -1,7 +1,7 @@
 import { Client, Room } from 'colyseus.js';
 import Game from 'src/scenes/Game';
 import { CrRoomSync } from 'schema/CrRoomSync';
-import { ROOM_NAME, TICKS_HALF_S, TIMESTEP, TIMESTEP_S } from 'shared/constants';
+import { MANA_MAX, MANA_REGEN_TICKS, ROOM_NAME, TICKS_HALF_S, TIMESTEP, TIMESTEP_S } from 'shared/constants';
 import { MENU_KEY } from 'src/scenes/Menu';
 import { GAME_STATE } from 'shared/GAME_STATE';
 import FixedTimestep from 'shared/FixedTimestep';
@@ -79,8 +79,12 @@ class RoomManager {
             this.updateText();
         }
         if (!this.ourPlayer) return;
-        // TODO mana prediction and interpolation.
-        this.game.manaBar.setMana(this.ourPlayer.secret.mana);
+        const time = this.timestep.getSteppedTime();
+        let mana = this.ourPlayer.secret.mana;
+        const ticksSinceLastRegen = this.timestep.ticks - this.ourPlayer.secret.manaRegenLastTick;
+        if (ticksSinceLastRegen > 0) mana += ticksSinceLastRegen / MANA_REGEN_TICKS;
+        if (mana > MANA_MAX) mana = MANA_MAX;
+        this.game.manaBar.interpolator.add(time, mana);
     }
 
     updateText() {

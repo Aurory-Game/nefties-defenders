@@ -1,10 +1,12 @@
-import { MANA_MAX, MANA_START } from 'shared/constants';
+import { MANA_MAX, MANA_START, TIMESTEP } from 'shared/constants';
 import { HEIGHT, WIDTH } from 'src/scenes/Game';
+import Interpolator from 'src/util/Interpolator';
 
 export default class ManaBar {
 
     scene:Phaser.Scene;
     root:Phaser.GameObjects.Container;
+    interpolator:Interpolator = new Interpolator(TIMESTEP);
     slots:Array<Phaser.GameObjects.Rectangle> = [];
 
     constructor(scene:Phaser.Scene) {
@@ -26,8 +28,19 @@ export default class ManaBar {
         this.root.add([background, ...this.slots]);
     }
 
-    setMana(mana:number) {
-        for (let i = 0; i < MANA_MAX; i++) this.slots[i].visible = i < mana;
+    update(time:number) {
+        const mana = this.interpolator.getAtTime(time)?.x;
+        if (mana) for (let i = 0; i < MANA_MAX; i++) {
+            const visible = i < mana;
+            this.slots[i].visible = visible;
+            if (visible && i == (mana | 0)) {
+                this.slots[i].scaleX = mana - i;
+                this.slots[i].alpha = 0.5 + 0.5 * (mana - i);
+            } else {
+                this.slots[i].scaleX = 1;
+                this.slots[i].alpha = 1;
+            }
+        }
     }
 
 }

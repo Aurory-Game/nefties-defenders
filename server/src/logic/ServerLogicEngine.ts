@@ -35,6 +35,7 @@ export default class ServerLogicEngine {
         if (this.sync.state == GAME_STATE.WAITING) {
             this.sync.state = GAME_STATE.STARTING;
             this.sync.nextStateAt = this.sync.tick + TICKS_3S; // Start in three seconds.
+            this.players.forEach(player => player.sync.secret.manaRegenLastTick = this.sync.nextStateAt);
         }
     }
 
@@ -43,7 +44,6 @@ export default class ServerLogicEngine {
         case GAME_STATE.STARTING:
             if (this.sync.tick >= this.sync.nextStateAt) {
                 this.sync.state = GAME_STATE.PLAYING;
-                this.players.forEach(this.resetManaRegenTick, this);
             }
             break;
         case GAME_STATE.PLAYING:{
@@ -62,18 +62,13 @@ export default class ServerLogicEngine {
         // Mana regen.
         for (const player of this.players.values()) {
             const secret = player.sync.secret;
-            if (secret.mana < MANA_MAX && this.sync.tick >= secret.manaRegenTick) {
+            if (secret.mana < MANA_MAX && this.sync.tick >= secret.manaRegenLastTick + MANA_REGEN_TICKS) {
                 secret.mana++;
-                this.resetManaRegenTick(player);
-                // TODO on mana use, if it was maxed, reset the `manaRegenTick`.
+                secret.manaRegenLastTick = this.sync.tick;
+                // TODO on mana use, if it was maxed, reset the `manaRegenLastTick`.
             }
         }
     }
-
-    resetManaRegenTick(player:PlayerData):void {
-        player.sync.secret.manaRegenTick = this.sync.tick + MANA_REGEN_TICKS;
-    }
-
 }
 
 type PlayerData = {
