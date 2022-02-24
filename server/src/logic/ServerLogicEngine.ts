@@ -1,8 +1,8 @@
 import { Client } from 'colyseus';
-import { MANA_MAX, MANA_REGEN_TICKS, TICKS_3S } from 'shared/constants';
-import { GAME_STATE } from 'shared/GAME_STATE';
-import CrRoom from 'src/rooms/CrRoom';
-import { CrRoomSync, PlayerSync } from 'src/schema/CrRoomSync';
+import { MANA_MAX, MANA_REGEN_TICKS, TICKS_3S } from '../../../shared/constants';
+import { GAME_STATE } from '../../../shared/GAME_STATE';
+import CrRoom from '../rooms/CrRoom';
+import { CrRoomSync, PlayerSync } from '../schema/CrRoomSync';
 
 export default class ServerLogicEngine {
 

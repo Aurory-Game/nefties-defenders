@@ -1,8 +1,8 @@
 import { Client, Room } from 'colyseus';
 import { CrRoomSync } from '../schema/CrRoomSync';
-import ServerLogicEngine from 'src/logic/ServerLogicEngine';
-import FixedTimestep from 'shared/FixedTimestep';
-import { TIMESTEP } from 'shared/constants';
+import ServerLogicEngine from '../logic/ServerLogicEngine';
+import FixedTimestep from '../../../shared/FixedTimestep';
+import { TIMESTEP } from '../../../shared/constants';
 
 export default class CrRoom extends Room<CrRoomSync> {
 

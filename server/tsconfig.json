@@ -1,6 +1,5 @@
 {
     "compilerOptions": {
-        "baseUrl": ".",
         "outDir": "./build",
         "target": "ES6",
         "module": "commonjs",
@@ -9,15 +8,11 @@
         "esModuleInterop": true,
         "skipLibCheck": true,
         "strict": true,
-        "moduleResolution": "node",
-        "paths": {
-            "shared/*": [
-                "../shared/*"
-            ]
-        }
+        "moduleResolution": "node"
     },
     "include": [
-        "./src/**/*.ts"
+        "./src/**/*.ts",
+        "../shared/**/*.ts"
     ],
     "ts-node": {
         "require": [
