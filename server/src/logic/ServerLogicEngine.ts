@@ -3,6 +3,7 @@ import { MANA_MAX, MANA_REGEN_TICKS, TICKS_3S } from '../../../shared/constants'
 import { GAME_STATE } from '../../../shared/GAME_STATE';
 import CrRoom from '../rooms/CrRoom';
 import { CrRoomSync, PlayerSync } from '../schema/CrRoomSync';
+import PlayerDeck from './PlayerDeck';
 
 export default class ServerLogicEngine {
 
@@ -22,6 +23,7 @@ export default class ServerLogicEngine {
 
         const data:PlayerData = {
             sync: playerSync,
+            deck: new PlayerDeck(playerSync.secret)
         };
         this.players.set(client.sessionId, data);
     }
@@ -73,4 +75,5 @@ export default class ServerLogicEngine {
 
 type PlayerData = {
     sync:PlayerSync,
+    deck:PlayerDeck,
 }

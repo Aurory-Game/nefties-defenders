@@ -12,3 +12,6 @@ export const MANA_START:number = 5;
 export const MANA_MAX:number = 10;
 /** Ticks that need to pass before mana point regenerates. */
 export const MANA_REGEN_TICKS:number = Math.round(1000 / TIMESTEP);
+
+/** How many cards are in a hand. */
+export const HAND_SIZE:number = 4;
