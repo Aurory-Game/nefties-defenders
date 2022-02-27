@@ -9,6 +9,7 @@ export class PlayerSecretSync extends Schema {
     @type('uint8') mana:number = MANA_START;
     /** The last tick that mana regenerated on. */
     @type('uint16') manaRegenLastTick:number = 0;
+    @type('boolean') isFlipped:boolean = false;
 }
 
 export class PlayerSync extends Schema {

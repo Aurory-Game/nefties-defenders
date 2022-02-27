@@ -22,6 +22,9 @@ export default class ServerLogicEngine {
 
     addPlayer(client:Client) {
         const playerSync = new PlayerSync(client.sessionId); // Using sessionId as player name for the prototype.
+        if (this.sync.players.size > 0) {
+            playerSync.secret.isFlipped = true;
+        }
         this.sync.players.set(client.sessionId, playerSync);
 
         const data:PlayerData = {
