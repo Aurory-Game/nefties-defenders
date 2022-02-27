@@ -1,10 +1,10 @@
 import { Client } from 'colyseus';
-import { CARDS, CardId } from '../../../shared/cards';
+import { CARDS, CardData, CardId } from '../../../shared/cards';
 import { MANA_MAX, MANA_REGEN_TICKS, TICKS_3S } from '../../../shared/constants';
 import { GAME_STATE } from '../../../shared/GAME_STATE';
 import { MessageKind, MessageType, sendMessage } from '../../../shared/messages';
 import CrRoom from '../rooms/CrRoom';
-import { CrRoomSync, PlayerSync } from '../schema/CrRoomSync';
+import { CrRoomSync, EntitySync, PlayerSync } from '../schema/CrRoomSync';
 import PlayerDeck from './PlayerDeck';
 
 export default class ServerLogicEngine {
@@ -12,6 +12,7 @@ export default class ServerLogicEngine {
     private room:CrRoom;
     private sync:CrRoomSync;
     private players:Map<string, PlayerData>;
+    private ids:number = 1;
 
     constructor(room:CrRoom) {
         this.room = room;
@@ -86,6 +87,7 @@ export default class ServerLogicEngine {
         if (!isFinite(cardId as number) || !player.deck.hasCard(cardId as CardId)) {
             fail(); // Invalid card, or player does not have it.
         } else {
+            // TODO validate position.
             const cardData = CARDS[cardId as CardId];
             if (player.sync.secret.mana < cardData.manaCost) {
                 // TODO implement pre-placement (if not enough mana, but close, delay the card play a bit).
@@ -93,6 +95,7 @@ export default class ServerLogicEngine {
             } else {
                 player.deck.useCard(cardId as CardId);
                 this.useMana(player, cardData.manaCost);
+                this.spawnEntity(msg?.x as number, msg?.y as number, cardId as CardId);
                 sendMessage(client, MessageKind.PlayCardResult, {
                     id: id as number,
                     nextCard: player.deck.getNextCard(),
@@ -108,6 +111,12 @@ export default class ServerLogicEngine {
             secret.manaRegenLastTick = this.sync.tick;
         }
         secret.mana -= mana;
+    }
+
+    spawnEntity(x:number, y:number, cardId:CardId) {
+        const id = 'e'+this.ids++;
+        const entitySync = new EntitySync(x, y, cardId);
+        this.sync.entities.set(id, entitySync);
     }
 
 }

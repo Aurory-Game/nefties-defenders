@@ -16,6 +16,8 @@ export type MessageType = {
         id:number,
         /** Card the player wants to play. */
         card:CardId,
+        x:number,
+        y:number
     },
     [MessageKind.PlayCardResult]:{
         /** Id of the request this result is for. */

@@ -46,6 +46,12 @@ class RoomManager {
                 this.ourPlayer = player;
             }
         };
+        this.sync.entities.onAdd = (entity, key) => {
+            this.game.addEntity(key, entity.x, entity.y, entity.type);
+        };
+        this.sync.entities.onRemove = (entity, key) => {
+            this.game.removeEntity(key);
+        };
         this.initTimeSync = new InitTimeSync(TIMESTEP);
         this.timestep = new FixedTimestep(TIMESTEP, () => this.update());
         this.room.onLeave(code => {

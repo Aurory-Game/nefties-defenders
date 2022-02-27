@@ -1,5 +1,6 @@
 import { MapSchema, Schema, filter, type } from '@colyseus/schema';
 import { Client } from 'colyseus';
+import { CardId } from '../../../shared/cards';
 import { MANA_START } from '../../../shared/constants';
 import { GAME_STATE } from '../../../shared/GAME_STATE';
 
@@ -22,11 +23,24 @@ export class PlayerSync extends Schema {
     }
 }
 
+export class EntitySync extends Schema {
+    @type('float32') x:number;
+    @type('float32') y:number;
+    @type('uint8') type:CardId;
+    constructor(x:number, y:number, type:CardId) {
+        super();
+        this.x = x;
+        this.y = y;
+        this.type = type;
+    }
+}
+
 export class CrRoomSync extends Schema {
     @type('uint8') state = GAME_STATE.WAITING;
     @type('uint16') nextStateAt = 0;
     @type('uint16') tick = 0;
     @type({ map: PlayerSync }) players = new MapSchema<PlayerSync>();
+    @type({ map: EntitySync }) entities = new MapSchema<EntitySync>();
 }
 
 function onlyOwnerPlayer(this:PlayerSync, client:Client, value:unknown, root:CrRoomSync) {

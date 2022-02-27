@@ -19,7 +19,7 @@ export default class CardHand {
         for (let i = 0; i < this.cards.length; i++) this.render.setCard(i, this.cards[i]);
     }
 
-    playCard(index:number):MessageType[MessageKind.PlayCard] {
+    playCard(index:number):{id:number, card:CardId} {
         this.requests.push({
             id: this.cardPlayId++,
             handIndex: index

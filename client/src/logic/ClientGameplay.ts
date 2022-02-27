@@ -11,8 +11,14 @@ export default class ClientGameplay {
         this.game.input.enabled = false;
         this.hand = new CardHand(game.handRender);
         this.game.handRender.onCardPlay = (index, x, y) => {
-            // TODO transform to game field coordinates.
-            sendMessage(this.room, MessageKind.PlayCard, this.hand.playCard(index));
+            const p = this.game.field.background.getLocalPoint(x, y);
+            const cardReq = this.hand.playCard(index);
+            sendMessage(this.room, MessageKind.PlayCard, {
+                card: cardReq.card,
+                id: cardReq.id,
+                x: p.x,
+                y: p.y
+            });
         };
     }
 
