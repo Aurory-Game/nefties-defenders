@@ -1,5 +1,6 @@
 import { CardId } from 'shared/cards';
 import { MessageKind, MessageType } from 'shared/messages';
+import CardHandRender from 'src/render/CardHandRender';
 
 export default class CardHand {
 
@@ -9,9 +10,13 @@ export default class CardHand {
     requests:PlayCardRequest[] = [];
     results:MessageType[MessageKind.PlayCardResult][] = [];
 
+    constructor(private render:CardHandRender) { }
+
     onCardHand(msg:MessageType[MessageKind.CardHand]):void {
         this.cards = msg.cards;
         this.nextCard = msg.nextCard;
+        this.render.setCard(-1, this.nextCard);
+        for (let i = 0; i < this.cards.length; i++) this.render.setCard(i, this.cards[i]);
     }
 
     playCard(index:number):MessageType[MessageKind.PlayCard] {
@@ -40,7 +45,9 @@ export default class CardHand {
                 // TODO properly manage hand state while in-flight.
                 this.cards[req.handIndex] = this.nextCard;
                 this.nextCard = res.nextCard;
+                this.render.setCard(-1, res.nextCard);
             }
+            this.render.setCard(req.handIndex, this.cards[req.handIndex]);
         }
         this.results.length = 0;
     }

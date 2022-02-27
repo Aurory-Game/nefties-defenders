@@ -5,21 +5,23 @@ import CardHand from './CardHand';
 
 export default class ClientGameplay {
 
-    hand:CardHand = new CardHand();
+    hand:CardHand;
 
-    constructor(private room:Room, private game:Game) { }
+    constructor(private room:Room, private game:Game) {
+        this.game.input.enabled = false;
+        this.hand = new CardHand(game.handRender);
+        this.game.handRender.onCardPlay = (index, x, y) => {
+            // TODO transform to game field coordinates.
+            sendMessage(this.room, MessageKind.PlayCard, this.hand.playCard(index));
+        };
+    }
 
     start() {
-        this.game.input.on(Phaser.Input.Events.POINTER_DOWN, () => this.playCard());
-        // TODO Card Hand UI + events for card state changes.
+        this.game.input.enabled = true;
     }
 
     end() {
         this.game.input.off(Phaser.Input.Events.POINTER_DOWN);
-    }
-
-    playCard() {
-        sendMessage(this.room, MessageKind.PlayCard, this.hand.playCard(0));
     }
 
 }

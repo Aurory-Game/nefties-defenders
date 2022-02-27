@@ -1,10 +1,12 @@
 import { startMatch } from 'src/logic/RoomManager';
 import { GAME_STATE } from 'shared/GAME_STATE';
 import ManaBar from 'src/render/ManaBar';
+import CardHandRender from 'src/render/CardHandRender';
 
 export default class Game extends Phaser.Scene {
 
     public manaBar:ManaBar;
+    public handRender:CardHandRender;
     private infoTx:Phaser.GameObjects.Text;
 
     constructor() {
@@ -17,6 +19,7 @@ export default class Game extends Phaser.Scene {
             .setOrigin(0.5);
         startMatch(this);
         this.manaBar = new ManaBar(this);
+        this.handRender = new CardHandRender(this);
     }
 
     /** Custom update function called by `RoomManager` server-synced time. */

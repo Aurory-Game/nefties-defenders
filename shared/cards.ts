@@ -34,7 +34,7 @@ export const CARDS:Record<CardId, CardData> = {
     },
 };
 
-type CardData = {
+export type CardData = {
     manaCost:number;
     hitpoints:number;
     /** How much damage is caused per attack. */
