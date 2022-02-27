@@ -7,6 +7,8 @@ import { GAME_STATE } from 'shared/GAME_STATE';
 import FixedTimestep from 'shared/FixedTimestep';
 import InitTimeSync from './InitTimeSync';
 import { PlayerSync } from 'schema/PlayerSync';
+import ClientGameplay from './ClientGameplay';
+import { MessageKind } from 'shared/messages';
 
 class RoomManager {
 
@@ -17,17 +19,26 @@ class RoomManager {
     private ourPlayer:PlayerSync;
     private timestep:FixedTimestep;
     private initTimeSync:InitTimeSync;
+    private gameplay:ClientGameplay;
 
     constructor(game:Game, room:Room<CrRoomSync>) {
         this.game = game;
         this.room = room;
         this.sync = room.state;
+        this.gameplay = new ClientGameplay(room, game);
         this.room.onStateChange(sync => this.onSyncChange(sync));
+        this.room.onMessage(MessageKind.CardHand, msg => this.gameplay.hand.onCardHand(msg));
+        this.room.onMessage(MessageKind.PlayCardResult, msg => this.gameplay.hand.onPlayCardResult(msg));
         this.sync.listen('state', state => {
             this.updateText();
-            if (state == GAME_STATE.PLAYING && !this.timestep.isEnabled()) {
-                // If for any reason we didn't start yet, do it now.
-                this.timestep.startNowAtTick(this.sync.tick);
+            if (state == GAME_STATE.PLAYING) {
+                if (!this.timestep.isEnabled()) {
+                    // If for any reason we didn't start yet, do it now.
+                    this.timestep.startNowAtTick(this.sync.tick);
+                }
+                this.gameplay.start();
+            } else if (state == GAME_STATE.DONE) {
+                this.gameplay.end();
             }
         });
         this.sync.players.onAdd = (player, key) => {
@@ -72,6 +83,7 @@ class RoomManager {
                 }
             }
         }
+        this.gameplay.hand.onAfterSchemaSync();
     }
 
     update() {

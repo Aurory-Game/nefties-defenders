@@ -3,6 +3,7 @@ import { CrRoomSync } from '../schema/CrRoomSync';
 import ServerLogicEngine from '../logic/ServerLogicEngine';
 import FixedTimestep from '../../../shared/FixedTimestep';
 import { TIMESTEP } from '../../../shared/constants';
+import { MessageKind } from '../../../shared/messages';
 
 export default class CrRoom extends Room<CrRoomSync> {
 
@@ -14,6 +15,7 @@ export default class CrRoom extends Room<CrRoomSync> {
         this.setState(new CrRoomSync());
         this.engine = new ServerLogicEngine(this);
         this.timestep = new FixedTimestep(TIMESTEP, () => this.onTick());
+        this.onMessage(MessageKind.PlayCard, (client, msg) => this.engine.onPlayCard(client, msg));
     }
 
     onJoin(client:Client) {

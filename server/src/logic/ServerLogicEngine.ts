@@ -1,6 +1,8 @@
 import { Client } from 'colyseus';
+import { CARDS, CardId } from '../../../shared/cards';
 import { MANA_MAX, MANA_REGEN_TICKS, TICKS_3S } from '../../../shared/constants';
 import { GAME_STATE } from '../../../shared/GAME_STATE';
+import { MessageKind, MessageType, sendMessage } from '../../../shared/messages';
 import CrRoom from '../rooms/CrRoom';
 import { CrRoomSync, PlayerSync } from '../schema/CrRoomSync';
 import PlayerDeck from './PlayerDeck';
@@ -23,8 +25,9 @@ export default class ServerLogicEngine {
 
         const data:PlayerData = {
             sync: playerSync,
-            deck: new PlayerDeck(playerSync.secret)
+            deck: new PlayerDeck()
         };
+        sendMessage(client, MessageKind.CardHand, data.deck.getHand());
         this.players.set(client.sessionId, data);
     }
 
@@ -67,10 +70,46 @@ export default class ServerLogicEngine {
             if (secret.mana < MANA_MAX && this.sync.tick >= secret.manaRegenLastTick + MANA_REGEN_TICKS) {
                 secret.mana++;
                 secret.manaRegenLastTick = this.sync.tick;
-                // TODO on mana use, if it was maxed, reset the `manaRegenLastTick`.
             }
         }
     }
+
+    onPlayCard(client:Client, msg:MessageType[MessageKind.PlayCard] | undefined) {
+        const player = this.players.get(client.sessionId);
+        if (!player) return; // Player doesn't exist.
+        const id = msg?.id;
+        if (!isFinite(id as number)) return; // Invalid request, exit without response.
+        const cardId = msg?.card;
+        function fail() {
+            sendMessage(client, MessageKind.PlayCardResult, { id: id as number, nextCard: null, entityId: null});
+        }
+        if (!isFinite(cardId as number) || !player.deck.hasCard(cardId as CardId)) {
+            fail(); // Invalid card, or player does not have it.
+        } else {
+            const cardData = CARDS[cardId as CardId];
+            if (player.sync.secret.mana < cardData.manaCost) {
+                // TODO implement pre-placement (if not enough mana, but close, delay the card play a bit).
+                fail(); // Not enough mana.
+            } else {
+                player.deck.useCard(cardId as CardId);
+                this.useMana(player, cardData.manaCost);
+                sendMessage(client, MessageKind.PlayCardResult, {
+                    id: id as number,
+                    nextCard: player.deck.getNextCard(),
+                    entityId: null, // TODO implement card behavior.
+                });
+            }
+        }
+    }
+
+    useMana(player:PlayerData, mana:number):void {
+        const { secret } = player.sync;
+        if (secret.mana == MANA_MAX) { // If mana was maxed out, reset regen.
+            secret.manaRegenLastTick = this.sync.tick;
+        }
+        secret.mana -= mana;
+    }
+
 }
 
 type PlayerData = {

@@ -1,6 +1,6 @@
 import { CardId } from '../../../shared/cards';
 import { HAND_SIZE } from '../../../shared/constants';
-import { PlayerSecretSync } from '../schema/CrRoomSync';
+import { MessageKind, MessageType } from '../../../shared/messages';
 
 export default class PlayerDeck {
 
@@ -8,24 +8,34 @@ export default class PlayerDeck {
     private deckIndex:number;
     private hand:CardId[];
 
-    constructor(private secret:PlayerSecretSync) {
+    constructor() {
         this.deck = dummyDeck.slice();
         this.shuffle();
         this.hand = this.deck.splice(0, HAND_SIZE);
-        for (let i = 0; i < HAND_SIZE; i++) {
-            this.secret.cardsHand.push(this.hand[i]);
-        }
         this.deckIndex = 0;
-        this.secret.cardsNext = this.deck[0];
     }
 
-    useCard(index:number):void {
-        const newCard = this.deck[this.deckIndex]; // Take next card.
-        this.deck[this.deckIndex] = this.hand[index]; // Put the used one back in the deck.
+    getHand():MessageType[MessageKind.CardHand] {
+        return {
+            cards: this.hand,
+            nextCard: this.getNextCard()
+        };
+    }
+
+    hasCard(card:CardId):boolean {
+        return this.hand.includes(card);
+    }
+
+    useCard(card:CardId):void {
+        const index = this.hand.indexOf(card);
+        if (index < 0) throw 'Cannot use card that the hand does not have.';
+        this.hand[index] = this.deck[this.deckIndex]; // Take next card.
+        this.deck[this.deckIndex] = card; // Put the used one back in the deck.
         this.deckIndex = (this.deckIndex + 1) % this.deck.length; // Move it to the end.
-        this.hand[index] = newCard;
-        this.secret.cardsHand[index] = newCard;
-        this.secret.cardsNext = this.deck[this.deckIndex];
+    }
+
+    getNextCard() {
+        return this.deck[this.deckIndex];
     }
 
     /** Fisher-Yates shuffle. */

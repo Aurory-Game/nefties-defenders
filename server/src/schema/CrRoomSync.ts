@@ -1,6 +1,5 @@
-import { ArraySchema, MapSchema, Schema, filter, type } from '@colyseus/schema';
+import { MapSchema, Schema, filter, type } from '@colyseus/schema';
 import { Client } from 'colyseus';
-import { CardId } from '../../../shared/cards';
 import { MANA_START } from '../../../shared/constants';
 import { GAME_STATE } from '../../../shared/GAME_STATE';
 
@@ -9,10 +8,6 @@ export class PlayerSecretSync extends Schema {
     @type('uint8') mana:number = MANA_START;
     /** The last tick that mana regenerated on. */
     @type('uint16') manaRegenLastTick:number = 0;
-    /** The current hand. */
-    @type(['uint8']) cardsHand:CardId[] = new ArraySchema<CardId>();
-    /** The next card that will be drawn. */
-    @type('uint8') cardsNext:CardId = 0;
 }
 
 export class PlayerSync extends Schema {
