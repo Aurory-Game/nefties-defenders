@@ -1,10 +1,10 @@
-import { startMatch } from 'src/logic/RoomManager';
+import { startMatch } from 'logic/RoomManager';
 import { GAME_STATE } from 'shared/GAME_STATE';
-import ManaBar from 'src/render/ManaBar';
-import CardHandRender from 'src/render/CardHandRender';
-import FieldRender from 'src/render/FieldRender';
+import ManaBar from 'render/ManaBar';
+import CardHandRender from 'render/CardHandRender';
+import FieldRender from 'render/FieldRender';
 import { CardId } from 'shared/cards';
-import EntityRender from 'src/render/EntityRender';
+import EntityRender from 'render/EntityRender';
 
 export default class Game extends Phaser.Scene {
 

@@ -1,7 +1,7 @@
 import { Room } from 'colyseus.js';
 import { FIELD_HEIGHT, FIELD_WIDTH } from 'shared/constants';
 import { MessageKind, sendMessage } from 'shared/messages';
-import Game from 'src/scenes/Game';
+import Game from 'scenes/Game';
 import CardHand from './CardHand';
 
 export default class ClientGameplay {

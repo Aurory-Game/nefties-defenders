@@ -1,6 +1,6 @@
 import { MANA_MAX, MANA_START, TIMESTEP } from 'shared/constants';
-import { HEIGHT, WIDTH } from 'src/scenes/Game';
-import Interpolator from 'src/util/Interpolator';
+import { HEIGHT, WIDTH } from 'scenes/Game';
+import Interpolator from 'util/Interpolator';
 
 export default class ManaBar {
 

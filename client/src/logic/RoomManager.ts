@@ -1,8 +1,9 @@
 import { Client, Room } from 'colyseus.js';
-import Game from 'src/scenes/Game';
+import Game from 'scenes/Game';
 import { CrRoomSync } from 'schema/CrRoomSync';
-import { FIELD_HEIGHT, FIELD_WIDTH, MANA_MAX, MANA_REGEN_TICKS, ROOM_NAME, TICKS_HALF_S, TIMESTEP, TIMESTEP_S } from 'shared/constants';
-import { MENU_KEY } from 'src/scenes/Menu';
+import { FIELD_HEIGHT, FIELD_WIDTH, MANA_MAX, MANA_REGEN_TICKS,
+    ROOM_NAME, TICKS_HALF_S, TIMESTEP, TIMESTEP_S } from 'shared/constants';
+import { MENU_KEY } from 'scenes/Menu';
 import { GAME_STATE } from 'shared/GAME_STATE';
 import FixedTimestep from 'shared/FixedTimestep';
 import InitTimeSync from './InitTimeSync';

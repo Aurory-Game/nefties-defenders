@@ -1,5 +1,5 @@
 import { FIELD_HEIGHT, FIELD_WIDTH } from 'shared/constants';
-import { HEIGHT, WIDTH } from 'src/scenes/Game';
+import { HEIGHT, WIDTH } from 'scenes/Game';
 
 export default class FieldRender {
 

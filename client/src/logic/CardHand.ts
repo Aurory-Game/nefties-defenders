@@ -1,6 +1,6 @@
 import { CardId } from 'shared/cards';
 import { MessageKind, MessageType } from 'shared/messages';
-import CardHandRender from 'src/render/CardHandRender';
+import CardHandRender from 'render/CardHandRender';
 
 export default class CardHand {
 

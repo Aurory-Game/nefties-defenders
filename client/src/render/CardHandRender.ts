@@ -1,6 +1,6 @@
 import { CardId } from 'shared/cards';
 import { HAND_SIZE } from 'shared/constants';
-import { HEIGHT, WIDTH } from 'src/scenes/Game';
+import { HEIGHT, WIDTH } from 'scenes/Game';
 import CardRender from './CardRender';
 
 export default class CardHandRender {
