@@ -10,7 +10,7 @@ export default class CardHandRender {
     cards:CardRender[] = [];
     nextCard:CardRender;
 
-    onCardPlay:(index:number, x:number, y:number) => void;
+    onCardDragMove:(index:number, x:number, y:number, isDone:boolean) => boolean;
 
     constructor(scene:Phaser.Scene) {
         this.scene = scene;
@@ -56,15 +56,21 @@ export default class CardHandRender {
     onDrag(pointer:Phaser.Input.Pointer, obj:GameObject, dragX:number, dragY:number) {
         obj.x = dragX;
         obj.y = dragY;
+        this.updateDragLogic(pointer, obj, false);
     }
 
     onDragEnd(pointer:Phaser.Input.Pointer, obj:GameObject) {
         obj.x = obj.input.dragStartX;
         obj.y = obj.input.dragStartY;
         obj.visible = false;
-        if (this.onCardPlay) {
+        this.updateDragLogic(pointer, obj, true);
+    }
+
+    updateDragLogic(pointer:Phaser.Input.Pointer, obj:GameObject, done:boolean) {
+        if (this.onCardDragMove) {
             const index = this.cards.findIndex(cr => cr.root == obj);
-            this.onCardPlay(index, pointer.x, pointer.y);
+            const visible = this.onCardDragMove(index, pointer.x, pointer.y, done);
+            obj.setVisible(visible);
         }
     }
 

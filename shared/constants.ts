@@ -16,5 +16,6 @@ export const MANA_REGEN_TICKS:number = Math.round(1000 / TIMESTEP);
 /** How many cards are in a hand. */
 export const HAND_SIZE:number = 4;
 
-export const FIELD_WIDTH:number = 800;
-export const FIELD_HEIGHT:number = 1000;
+export const FIELD_TILES_WIDTH:number = 18;
+export const FIELD_TILES_HEIGHT:number = 32;
+export const FIELD_TILE_SIZE:number = 32;

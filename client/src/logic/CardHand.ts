@@ -5,10 +5,11 @@ import CardHandRender from 'render/CardHandRender';
 export default class CardHand {
 
     cards:CardId[];
-    nextCard:CardId;
-    cardPlayId:number = 1;
-    requests:PlayCardRequest[] = [];
-    results:MessageType[MessageKind.PlayCardResult][] = [];
+    onRequestConfirmed:(id:number) => void;
+    private nextCard:CardId;
+    private cardPlayId:number = 1;
+    private requests:PlayCardRequest[] = [];
+    private results:MessageType[MessageKind.PlayCardResult][] = [];
 
     constructor(private render:CardHandRender) { }
 
@@ -20,14 +21,9 @@ export default class CardHand {
     }
 
     playCard(index:number):{id:number, card:CardId} {
-        this.requests.push({
-            id: this.cardPlayId++,
-            handIndex: index
-        });
-        return {
-            id: this.cardPlayId,
-            card: this.cards[index]
-        };
+        const id = this.cardPlayId++;
+        this.requests.push({ id, handIndex: index });
+        return { id, card: this.cards[index] };
     }
 
     onPlayCardResult(msg:MessageType[MessageKind.PlayCardResult]):void {
@@ -40,16 +36,21 @@ export default class CardHand {
     onAfterSchemaSync() {
         for (const res of this.results) {
             const reqId = this.requests.findIndex(r => r.id == res.id);
+            if (reqId == -1) console.error(`Unknown confirmation id ${res.id}.`);
             const req = this.requests.splice(reqId, 1)[0];
             if (res.nextCard) { // Play was successful.
-                // TODO properly manage hand state while in-flight.
                 this.cards[req.handIndex] = this.nextCard;
                 this.nextCard = res.nextCard;
                 this.render.setCard(-1, res.nextCard);
             }
             this.render.setCard(req.handIndex, this.cards[req.handIndex]);
+            this.onRequestConfirmed?.(res.id);
         }
         this.results.length = 0;
+    }
+
+    getNextId():number {
+        return this.cardPlayId;
     }
 }
 

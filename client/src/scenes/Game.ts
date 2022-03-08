@@ -5,6 +5,7 @@ import CardHandRender from 'render/CardHandRender';
 import FieldRender from 'render/FieldRender';
 import { CardId } from 'shared/cards';
 import EntityRender from 'render/EntityRender';
+import { FieldPlacement, PLACEMENT } from 'logic/ClientGameplay';
 
 export default class Game extends Phaser.Scene {
 
@@ -13,6 +14,7 @@ export default class Game extends Phaser.Scene {
     public field:FieldRender;
     private infoTx:Phaser.GameObjects.Text;
     private entities:Map<string, EntityRender> = new Map();
+    private dummies:Map<number, EntityRender> = new Map();
 
     constructor() {
         super(GAME_KEY);
@@ -51,10 +53,34 @@ export default class Game extends Phaser.Scene {
         }
     }
 
-    addEntity(key:string, x:number, y:number, type:CardId) {
-        const render = new EntityRender(this, x, y, type);
+    updateDummy(id:number, type:CardId, placement:FieldPlacement) {
+        if (!this.dummies.has(id)) {
+            const dummy = new EntityRender(this, type);
+            dummy.addMarker();
+            this.dummies.set(id, dummy);
+            this.field.root.add(dummy.root);
+        }
+        const dummy = this.dummies.get(id);
+        dummy.root.setVisible(placement.type != PLACEMENT.BelowLine);
+        if (placement.type == PLACEMENT.Placed) dummy.marker.setVisible(false);
+        switch (placement.type) {
+        case PLACEMENT.Valid:
+        case PLACEMENT.Placed:
+            dummy.updatePos(placement);
+            break;
+        }
+    }
+
+    removeDummy(id:number) {
+        this.dummies.get(id)?.destroy();
+        this.dummies.delete(id);
+    }
+
+    addEntity(key:string, pos:{tileX:number, tileY:number}, type:CardId) {
+        const render = new EntityRender(this, type);
         this.entities.set(key, render);
         this.field.root.add(render.root);
+        render.updatePos(pos);
     }
 
     removeEntity(key:string) {

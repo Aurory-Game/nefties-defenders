@@ -1,6 +1,6 @@
 import { Client } from 'colyseus';
 import { CARDS, CardData, CardId } from '../../../shared/cards';
-import { MANA_MAX, MANA_REGEN_TICKS, TICKS_3S } from '../../../shared/constants';
+import { FIELD_TILES_HEIGHT, FIELD_TILES_WIDTH, MANA_MAX, MANA_REGEN_TICKS, TICKS_3S } from '../../../shared/constants';
 import { GAME_STATE } from '../../../shared/GAME_STATE';
 import { MessageKind, MessageType, sendMessage } from '../../../shared/messages';
 import CrRoom from '../rooms/CrRoom';
@@ -80,32 +80,39 @@ export default class ServerLogicEngine {
 
     onPlayCard(client:Client, msg:MessageType[MessageKind.PlayCard] | undefined) {
         const player = this.players.get(client.sessionId);
-        if (!player) return; // Player doesn't exist.
-        const id = msg?.id;
-        if (!isFinite(id as number)) return; // Invalid request, exit without response.
-        const cardId = msg?.card;
+        if (!player || !msg) return; // Player doesn't exist or invalid request.
+        // Sanitize input.
+        const {id, card, tileX, tileY} = msg;
+        if (!Number.isInteger(id) || !Number.isInteger(card) || !Number.isInteger(tileX) || !Number.isInteger(tileY))
+            return; // Invalid data, exit without response.
+        // Validate input.
         function fail() {
-            sendMessage(client, MessageKind.PlayCardResult, { id: id as number, nextCard: null, entityId: null});
+            sendMessage(client, MessageKind.PlayCardResult, { id: id, nextCard: null });
         }
-        if (!isFinite(cardId as number) || !player.deck.hasCard(cardId as CardId)) {
-            fail(); // Invalid card, or player does not have it.
+        if (!player.deck.hasCard(card)) {
+            fail();
         } else {
-            // TODO validate position.
-            const cardData = CARDS[cardId as CardId];
-            if (player.sync.secret.mana < cardData.manaCost) {
+            const cardData = CARDS[card as CardId];
+            if (!this.canSpawn(cardData, player, tileX, tileY)) {
+                fail();
+            } else if (player.sync.secret.mana < cardData.manaCost) {
                 // TODO implement pre-placement (if not enough mana, but close, delay the card play a bit).
                 fail(); // Not enough mana.
             } else {
-                player.deck.useCard(cardId as CardId);
+                player.deck.useCard(card);
                 this.useMana(player, cardData.manaCost);
-                this.spawnEntity(msg?.x as number, msg?.y as number, cardId as CardId);
+                this.spawnEntity(tileX + 0.5, tileY + 0.5, card);
                 sendMessage(client, MessageKind.PlayCardResult, {
-                    id: id as number,
+                    id: id,
                     nextCard: player.deck.getNextCard(),
-                    entityId: null, // TODO implement card behavior.
                 });
             }
         }
+    }
+
+    canSpawn(cardData:CardData, player:PlayerData, tileX:number, tileY:number):boolean {
+        // TODO tower influence.
+        return tileX >= 0 && tileX < FIELD_TILES_WIDTH && tileY >= 0 && tileY < FIELD_TILES_HEIGHT;
     }
 
     useMana(player:PlayerData, mana:number):void {

@@ -16,16 +16,14 @@ export type MessageType = {
         id:number,
         /** Card the player wants to play. */
         card:CardId,
-        x:number,
-        y:number
+        tileX:number,
+        tileY:number
     },
     [MessageKind.PlayCardResult]:{
         /** Id of the request this result is for. */
         id:number,
         /** If card was played, id of the next card, `null` otherwise. */
         nextCard:CardId | null,
-        /** What entity it created, if any. */
-        entityId:number | null,
     },
 }
 

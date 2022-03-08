@@ -25,13 +25,13 @@ export class PlayerSync extends Schema {
 }
 
 export class EntitySync extends Schema {
-    @type('float32') x:number;
-    @type('float32') y:number;
+    @type('float32') tileX:number;
+    @type('float32') tileY:number;
     @type('uint8') type:CardId;
-    constructor(x:number, y:number, type:CardId) {
+    constructor(tileX:number, tileY:number, type:CardId) {
         super();
-        this.x = x;
-        this.y = y;
+        this.tileX = tileX;
+        this.tileY = tileY;
         this.type = type;
     }
 }
