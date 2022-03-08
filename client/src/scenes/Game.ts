@@ -61,14 +61,19 @@ export default class Game extends Phaser.Scene {
             this.field.root.add(dummy.root);
         }
         const dummy = this.dummies.get(id);
-        dummy.root.setVisible(placement.type != PLACEMENT.BelowLine);
-        if (placement.type == PLACEMENT.Placed) dummy.marker.setVisible(false);
+        dummy.root.setVisible(placement.type != PLACEMENT.BELOW_LINE);
+        if (placement.type == PLACEMENT.PLACED) dummy.marker.setVisible(false);
         switch (placement.type) {
-        case PLACEMENT.Valid:
-        case PLACEMENT.Placed:
+        case PLACEMENT.VALID:
+        case PLACEMENT.PLACED:
             dummy.updatePos(placement);
             break;
+        case PLACEMENT.ERR_INVALID_POS:
+        case PLACEMENT.ERR_NO_MANA:
+            this.removeDummy(id);
+            break;
         }
+        // TODO error msg.
     }
 
     removeDummy(id:number) {

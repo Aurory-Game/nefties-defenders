@@ -44,7 +44,7 @@ class RoomManager {
         this.sync.players.onAdd = (player, key) => {
             if (key == room.sessionId) {
                 this.ourPlayer = player;
-                if (player.secret.isFlipped) this.gameplay.isFlipped = true;
+                this.gameplay.ourPlayer = player;
             }
         };
         this.sync.entities.onAdd = (entity, key) => {

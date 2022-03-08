@@ -4,11 +4,12 @@ import { MessageKind, sendMessage } from 'shared/messages';
 import Game from 'scenes/Game';
 import CardHand from './CardHand';
 import { EntitySync } from 'schema/EntitySync';
+import { PlayerSync } from 'schema/PlayerSync';
 
 export default class ClientGameplay {
 
     hand:CardHand;
-    public isFlipped:boolean = false;
+    public ourPlayer:PlayerSync;
 
     constructor(private room:Room, private game:Game) {
         this.game.input.enabled = false;
@@ -22,29 +23,28 @@ export default class ClientGameplay {
         const placement = this.getFieldPlacement(p);
         const id = this.hand.getNextId();
         // TODO display invalid placement shape.
-        // TODO mana prediction.
         if (isDone) {
-            // TODO check mana, display error if low, don't send request.
-            if (placement.type != PLACEMENT.Valid) {
-                // TODO display message about invalid placement attempt.
-                this.game.removeDummy(id);
-                return true;
+            if (placement.type != PLACEMENT.VALID)
+                placement.type = PLACEMENT.ERR_INVALID_POS;
+            else if (this.ourPlayer.secret.mana < this.hand.predictMana(index))
+                placement.type = PLACEMENT.ERR_NO_MANA;
+            else {
+                const cardReq = this.hand.playCard(index);
+                sendMessage(this.room, MessageKind.PlayCard, {
+                    card: cardReq.card,
+                    id: cardReq.id,
+                    tileX: placement.tileX,
+                    tileY: placement.tileY
+                });
+                placement.type = PLACEMENT.PLACED;
             }
-            const cardReq = this.hand.playCard(index);
-            sendMessage(this.room, MessageKind.PlayCard, {
-                card: cardReq.card,
-                id: cardReq.id,
-                tileX: placement.tileX,
-                tileY: placement.tileY
-            });
-            placement.type = PLACEMENT.Placed;
         }
         // Assume placement in the middle of the tile.
         placement.tileX += 0.5;
         placement.tileY += 0.5;
         this.flipIfNeeded(placement); // Flip to rendering coordinates.
         this.game.updateDummy(id, this.hand.cards[index], placement);
-        return placement.type == PLACEMENT.BelowLine;
+        return isDone || placement.type == PLACEMENT.BELOW_LINE;
     }
 
     start() {
@@ -56,13 +56,13 @@ export default class ClientGameplay {
     }
 
     getFieldPlacement(p:{x:number, y:number}):FieldPlacement {
-        const f = this.isFlipped ? Math.ceil : Math.floor;
+        const f = this.ourPlayer.secret.isFlipped ? Math.ceil : Math.floor;
         const result = {
-            type: PLACEMENT.Valid,
+            type: PLACEMENT.VALID,
             tileX: f(p.x / FIELD_TILE_SIZE),
             tileY: f(p.y / FIELD_TILE_SIZE),
         };
-        if (p.y > FIELD_TILES_HEIGHT * FIELD_TILE_SIZE) result.type = PLACEMENT.BelowLine;
+        if (p.y > FIELD_TILES_HEIGHT * FIELD_TILE_SIZE) result.type = PLACEMENT.BELOW_LINE;
         this.flipIfNeeded(result); // Flip to logical coordinates.
         // Clamp on sides.
         if (result.tileY < 0) result.tileY = 0;
@@ -86,7 +86,7 @@ export default class ClientGameplay {
     }
 
     flipIfNeeded(o:{tileX:number, tileY:number}) {
-        if (this.isFlipped) {
+        if (this.ourPlayer.secret.isFlipped) {
             o.tileX = FIELD_TILES_WIDTH - o.tileX;
             o.tileY = FIELD_TILES_HEIGHT - o.tileY;
         }
@@ -95,10 +95,12 @@ export default class ClientGameplay {
 }
 
 export const enum PLACEMENT {
-    Valid,
-    Invalid,
-    BelowLine,
-    Placed
+    VALID,
+    INVALID,
+    BELOW_LINE,
+    PLACED,
+    ERR_NO_MANA,
+    ERR_INVALID_POS,
 }
 
 export type FieldPlacement = {
