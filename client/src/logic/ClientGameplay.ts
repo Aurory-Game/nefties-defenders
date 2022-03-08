@@ -1,5 +1,5 @@
 import { Room } from 'colyseus.js';
-import { FIELD_TILES_HEIGHT, FIELD_TILES_WIDTH, FIELD_TILE_SIZE } from 'shared/constants';
+import { FIELD_TILES_HEIGHT, FIELD_TILES_WIDTH, FIELD_TILE_SIZE, isWater } from 'shared/constants';
 import { MessageKind, sendMessage } from 'shared/messages';
 import Game from 'scenes/Game';
 import CardHand from './CardHand';
@@ -70,7 +70,17 @@ export default class ClientGameplay {
         if (result.tileX < 0) result.tileX = 0;
         else if (result.tileX >= FIELD_TILES_WIDTH) result.tileX = FIELD_TILES_WIDTH - 1;
 
-        // TODO check against water/bridges.
+        if (isWater(result.tileX, result.tileY)) {
+            if (result.tileX > 0 && !isWater(result.tileX - 1, result.tileY))
+                result.tileX--;
+            else if (result.tileX < FIELD_TILES_WIDTH - 1 && !isWater(result.tileX + 1, result.tileY))
+                result.tileX++;
+            else if (result.tileY > 0 && !isWater(result.tileX, result.tileY - 1))
+                result.tileY--;
+            else if (result.tileY < FIELD_TILES_HEIGHT - 1 && !isWater(result.tileX, result.tileY + 1))
+                result.tileY++;
+        }
+
         // TODO check against tower instances. Clamp around ours. Handle opponent's influence field.
         return result;
     }
