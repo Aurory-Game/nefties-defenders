@@ -73,7 +73,15 @@ export default class Game extends Phaser.Scene {
             this.removeDummy(id);
             break;
         }
-        // TODO error msg.
+        switch (placement.type) {
+        case PLACEMENT.ERR_INVALID_POS:
+            this.showError('Invalid Placement');
+            break;
+        case PLACEMENT.ERR_NO_MANA:
+            this.showError('Not Enough Mana');
+            break;
+        }
+
     }
 
     removeDummy(id:number) {
@@ -94,6 +102,38 @@ export default class Game extends Phaser.Scene {
             this.entities.delete(key);
             render.destroy();
         }
+    }
+
+    showError(tx:string) {
+        const text = this.add.text(this.scale.width / 2, this.scale.height * 0.33, tx, {
+            fontSize: '28px',
+            color: '#cc3333',
+            fontStyle: 'bold',
+        }).setOrigin(0.5)
+            .setDepth(6)
+            .setAlpha(0);
+        this.tweens.timeline({
+            targets: text,
+            onComplete: () => text.destroy(),
+            tweens: [
+                {
+                    alpha: 1,
+                    y: '-=30',
+                    duration: 200,
+                    ease: 'Quad.easeOut'
+                },
+                {
+                    y: '-=10',
+                    duration: 2000,
+                },
+                {
+                    alpha: 0,
+                    offset: '-=200',
+                    duration: 200,
+                    ease: 'Quad.easeIn'
+                }
+            ]
+        });
     }
 
 }
