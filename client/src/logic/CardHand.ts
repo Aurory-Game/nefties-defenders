@@ -1,4 +1,4 @@
-import { CardId } from 'shared/cards';
+import { CARDS, CardId } from 'shared/cards';
 import { MessageKind, MessageType } from 'shared/messages';
 import CardHandRender from 'render/CardHandRender';
 
@@ -51,6 +51,12 @@ export default class CardHand {
 
     getNextId():number {
         return this.cardPlayId;
+    }
+
+    predictMana(withCardIndex?:number):number {
+        const indices = this.requests.map(r => r.handIndex);
+        if (typeof withCardIndex !== 'undefined') indices.push(withCardIndex);
+        return indices.reduce((p, i) => p + CARDS[this.cards[i]].manaCost, 0);
     }
 }
 

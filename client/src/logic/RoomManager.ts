@@ -100,6 +100,7 @@ class RoomManager {
         if (!this.ourPlayer) return;
         const time = this.timestep.getSteppedTime();
         let mana = this.ourPlayer.secret.mana;
+        mana -= this.gameplay.hand.predictMana();
         const ticksSinceLastRegen = this.timestep.ticks - this.ourPlayer.secret.manaRegenLastTick;
         if (ticksSinceLastRegen > 0) mana += ticksSinceLastRegen / MANA_REGEN_TICKS;
         if (mana > MANA_MAX) mana = MANA_MAX;
