@@ -2,7 +2,7 @@ import { Client } from 'colyseus';
 import { CARDS, CardData, CardId } from '../../../shared/cards';
 import { FIELD_TILES_HEIGHT, FIELD_TILES_WIDTH, MANA_MAX, MANA_REGEN_TICKS, TICKS_3S,
     isWater } from '../../../shared/constants';
-import { GAME_STATE } from '../../../shared/GAME_STATE';
+import { GameState } from '../../../shared/GameState';
 import { MessageKind, MessageType, sendMessage } from '../../../shared/messages';
 import CrRoom from '../rooms/CrRoom';
 import { CrRoomSync, EntitySync, PlayerSync } from '../schema/CrRoomSync';
@@ -32,7 +32,7 @@ export default class ServerLogicEngine {
             sync: playerSync,
             deck: new PlayerDeck()
         };
-        sendMessage(client, MessageKind.CardHand, data.deck.getHand());
+        sendMessage(client, MessageKind.CARD_HAND, data.deck.getHand());
         this.players.set(client.sessionId, data);
     }
 
@@ -42,8 +42,8 @@ export default class ServerLogicEngine {
     }
 
     start() {
-        if (this.sync.state == GAME_STATE.WAITING) {
-            this.sync.state = GAME_STATE.STARTING;
+        if (this.sync.state == GameState.WAITING) {
+            this.sync.state = GameState.STARTING;
             this.sync.nextStateAt = this.sync.tick + TICKS_3S; // Start in three seconds.
             this.players.forEach(player => player.sync.secret.manaRegenLastTick = this.sync.nextStateAt);
         }
@@ -51,16 +51,16 @@ export default class ServerLogicEngine {
 
     update() {
         switch (this.sync.state) {
-        case GAME_STATE.STARTING:
+        case GameState.STARTING:
             if (this.sync.tick >= this.sync.nextStateAt) {
-                this.sync.state = GAME_STATE.PLAYING;
+                this.sync.state = GameState.PLAYING;
             }
             break;
-        case GAME_STATE.PLAYING:{
+        case GameState.PLAYING:{
             this.gameLogic();
             break;
         }
-        case GAME_STATE.DONE:
+        case GameState.DONE:
             if (this.sync.tick >= this.sync.nextStateAt) {
                 this.room.disconnect();
             }
@@ -79,7 +79,7 @@ export default class ServerLogicEngine {
         }
     }
 
-    onPlayCard(client:Client, msg:MessageType[MessageKind.PlayCard] | undefined) {
+    onPlayCard(client:Client, msg:MessageType[MessageKind.PLAY_CARD] | undefined) {
         const player = this.players.get(client.sessionId);
         if (!player || !msg) return; // Player doesn't exist or invalid request.
         // Sanitize input.
@@ -88,7 +88,7 @@ export default class ServerLogicEngine {
             return; // Invalid data, exit without response.
         // Validate input.
         function fail() {
-            sendMessage(client, MessageKind.PlayCardResult, { id: id, nextCard: null });
+            sendMessage(client, MessageKind.PLAY_CARD_RESULT, { id: id, nextCard: null });
         }
         if (!player.deck.hasCard(card)) {
             fail();
@@ -103,7 +103,7 @@ export default class ServerLogicEngine {
                 player.deck.useCard(card);
                 this.useMana(player, cardData.manaCost);
                 this.spawnEntity(tileX + 0.5, tileY + 0.5, card);
-                sendMessage(client, MessageKind.PlayCardResult, {
+                sendMessage(client, MessageKind.PLAY_CARD_RESULT, {
                     id: id,
                     nextCard: player.deck.getNextCard(),
                 });

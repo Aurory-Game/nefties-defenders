@@ -56,7 +56,7 @@ GGGGGGGGGGGGGGGGGG
 GGGGGGGGGGGGGGGGGG
 `;
 
-export const enum TILE_TYPE {
+export const enum TileType {
     GRASS,
     WATER,
     BRIDGE
@@ -64,13 +64,13 @@ export const enum TILE_TYPE {
 
 export const FIELD_MAP_DATA = FIELD_MAP.split('\n').filter(l => l.length > 0).map(l => l.split('').map(char => {
     switch (char) {
-    case 'G': return TILE_TYPE.GRASS;
-    case 'W': return TILE_TYPE.WATER;
-    case 'B': return TILE_TYPE.BRIDGE;
+    case 'G': return TileType.GRASS;
+    case 'W': return TileType.WATER;
+    case 'B': return TileType.BRIDGE;
     default: throw 'Unexpected tile value.';
     }
 }));
 
 export function isWater(x:number, y:number) {
-    return FIELD_MAP_DATA[y][x] == TILE_TYPE.WATER;
+    return FIELD_MAP_DATA[y][x] == TileType.WATER;
 }

@@ -1,17 +1,17 @@
 import { CardId } from './cards';
 
 export enum MessageKind {
-    CardHand,
-    PlayCard,
-    PlayCardResult,
+    CARD_HAND,
+    PLAY_CARD,
+    PLAY_CARD_RESULT,
 }
 
 export type MessageType = {
-    [MessageKind.CardHand]:{
+    [MessageKind.CARD_HAND]:{
         cards:CardId[],
         nextCard:CardId
     },
-    [MessageKind.PlayCard]:{
+    [MessageKind.PLAY_CARD]:{
         /** Id of the request. */
         id:number,
         /** Card the player wants to play. */
@@ -19,7 +19,7 @@ export type MessageType = {
         tileX:number,
         tileY:number
     },
-    [MessageKind.PlayCardResult]:{
+    [MessageKind.PLAY_CARD_RESULT]:{
         /** Id of the request this result is for. */
         id:number,
         /** If card was played, id of the next card, `null` otherwise. */

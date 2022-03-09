@@ -3,7 +3,7 @@ import Game from 'scenes/Game';
 import { CrRoomSync } from 'schema/CrRoomSync';
 import { MANA_MAX, MANA_REGEN_TICKS, ROOM_NAME, TICKS_HALF_S, TIMESTEP, TIMESTEP_S } from 'shared/constants';
 import { MENU_KEY } from 'scenes/Menu';
-import { GAME_STATE } from 'shared/GAME_STATE';
+import { GameState } from 'shared/GameState';
 import FixedTimestep from 'shared/FixedTimestep';
 import InitTimeSync from './InitTimeSync';
 import { PlayerSync } from 'schema/PlayerSync';
@@ -27,17 +27,17 @@ class RoomManager {
         this.sync = room.state;
         this.gameplay = new ClientGameplay(room, game);
         this.room.onStateChange(sync => this.onSyncChange(sync));
-        this.room.onMessage(MessageKind.CardHand, msg => this.gameplay.hand.onCardHand(msg));
-        this.room.onMessage(MessageKind.PlayCardResult, msg => this.gameplay.hand.onPlayCardResult(msg));
+        this.room.onMessage(MessageKind.CARD_HAND, msg => this.gameplay.hand.onCardHand(msg));
+        this.room.onMessage(MessageKind.PLAY_CARD_RESULT, msg => this.gameplay.hand.onPlayCardResult(msg));
         this.sync.listen('state', state => {
             this.updateText();
-            if (state == GAME_STATE.PLAYING) {
+            if (state == GameState.PLAYING) {
                 if (!this.timestep.isEnabled()) {
                     // If for any reason we didn't start yet, do it now.
                     this.timestep.startNowAtTick(this.sync.tick);
                 }
                 this.gameplay.start();
-            } else if (state == GAME_STATE.DONE) {
+            } else if (state == GameState.DONE) {
                 this.gameplay.end();
             }
         });
@@ -76,7 +76,7 @@ class RoomManager {
     }
 
     onSyncChange(sync:CrRoomSync) {
-        if (sync.state == GAME_STATE.STARTING) {
+        if (sync.state == GameState.STARTING) {
             const ticksUntilStart = sync.nextStateAt - sync.tick;
             if (ticksUntilStart > TICKS_HALF_S) {
                 this.updateText();
@@ -94,7 +94,7 @@ class RoomManager {
     }
 
     update() {
-        if (this.sync.state != GAME_STATE.PLAYING) {
+        if (this.sync.state != GameState.PLAYING) {
             this.updateText();
         }
         if (!this.ourPlayer) return;

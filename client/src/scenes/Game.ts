@@ -1,11 +1,11 @@
 import { startMatch } from 'logic/RoomManager';
-import { GAME_STATE } from 'shared/GAME_STATE';
+import { GameState } from 'shared/GameState';
 import ManaBar from 'render/ManaBar';
 import CardHandRender from 'render/CardHandRender';
 import FieldRender from 'render/FieldRender';
 import { CardId } from 'shared/cards';
 import EntityRender from 'render/EntityRender';
-import { FieldPlacement, PLACEMENT } from 'logic/ClientGameplay';
+import { FieldPlacement, Placement } from 'logic/ClientGameplay';
 
 export default class Game extends Phaser.Scene {
 
@@ -36,18 +36,18 @@ export default class Game extends Phaser.Scene {
         this.manaBar.update(time);
     }
 
-    updateText(gameState:GAME_STATE, secondsLeft:number) {
+    updateText(gameState:GameState, secondsLeft:number) {
         switch (gameState) {
-        case GAME_STATE.WAITING:
+        case GameState.WAITING:
             this.infoTx.setText('WAITING FOR MORE PLAYERS').setVisible(true);
             break;
-        case GAME_STATE.STARTING:
+        case GameState.STARTING:
             this.infoTx.setText(`GAME STARTING IN ${secondsLeft}`).setVisible(true);
             break;
-        case GAME_STATE.PLAYING:
+        case GameState.PLAYING:
             this.infoTx.setVisible(false);
             break;
-        case GAME_STATE.DONE:
+        case GameState.DONE:
             this.infoTx.setText('GAME OVER').setVisible(true);
             break;
         }
@@ -61,23 +61,23 @@ export default class Game extends Phaser.Scene {
             this.field.root.add(dummy.root);
         }
         const dummy = this.dummies.get(id);
-        dummy.root.setVisible(placement.type != PLACEMENT.BELOW_LINE);
-        if (placement.type == PLACEMENT.PLACED) dummy.marker.setVisible(false);
+        dummy.root.setVisible(placement.type != Placement.BELOW_LINE);
+        if (placement.type == Placement.PLACED) dummy.marker.setVisible(false);
         switch (placement.type) {
-        case PLACEMENT.VALID:
-        case PLACEMENT.PLACED:
+        case Placement.VALID:
+        case Placement.PLACED:
             dummy.updatePos(placement);
             break;
-        case PLACEMENT.ERR_INVALID_POS:
-        case PLACEMENT.ERR_NO_MANA:
+        case Placement.ERR_INVALID_POS:
+        case Placement.ERR_NO_MANA:
             this.removeDummy(id);
             break;
         }
         switch (placement.type) {
-        case PLACEMENT.ERR_INVALID_POS:
+        case Placement.ERR_INVALID_POS:
             this.showError('Invalid Placement');
             break;
-        case PLACEMENT.ERR_NO_MANA:
+        case Placement.ERR_NO_MANA:
             this.showError('Not Enough Mana');
             break;
         }

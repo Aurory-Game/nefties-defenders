@@ -24,19 +24,19 @@ export default class ClientGameplay {
         const id = this.hand.getNextId();
         // TODO display invalid placement shape.
         if (isDone) {
-            if (placement.type != PLACEMENT.VALID)
-                placement.type = PLACEMENT.ERR_INVALID_POS;
+            if (placement.type != Placement.VALID)
+                placement.type = Placement.ERR_INVALID_POS;
             else if (this.ourPlayer.secret.mana < this.hand.predictMana(index))
-                placement.type = PLACEMENT.ERR_NO_MANA;
+                placement.type = Placement.ERR_NO_MANA;
             else {
                 const cardReq = this.hand.playCard(index);
-                sendMessage(this.room, MessageKind.PlayCard, {
+                sendMessage(this.room, MessageKind.PLAY_CARD, {
                     card: cardReq.card,
                     id: cardReq.id,
                     tileX: placement.tileX,
                     tileY: placement.tileY
                 });
-                placement.type = PLACEMENT.PLACED;
+                placement.type = Placement.PLACED;
             }
         }
         // Assume placement in the middle of the tile.
@@ -44,7 +44,7 @@ export default class ClientGameplay {
         placement.tileY += 0.5;
         this.flipIfNeeded(placement); // Flip to rendering coordinates.
         this.game.updateDummy(id, this.hand.cards[index], placement);
-        return isDone || placement.type == PLACEMENT.BELOW_LINE;
+        return isDone || placement.type == Placement.BELOW_LINE;
     }
 
     start() {
@@ -58,11 +58,11 @@ export default class ClientGameplay {
     getFieldPlacement(p:{x:number, y:number}):FieldPlacement {
         const f = this.ourPlayer.secret.isFlipped ? Math.ceil : Math.floor;
         const result = {
-            type: PLACEMENT.VALID,
+            type: Placement.VALID,
             tileX: f(p.x / FIELD_TILE_SIZE),
             tileY: f(p.y / FIELD_TILE_SIZE),
         };
-        if (p.y > FIELD_TILES_HEIGHT * FIELD_TILE_SIZE) result.type = PLACEMENT.BELOW_LINE;
+        if (p.y > FIELD_TILES_HEIGHT * FIELD_TILE_SIZE) result.type = Placement.BELOW_LINE;
         this.flipIfNeeded(result); // Flip to logical coordinates.
         // Clamp on sides.
         if (result.tileY < 0) result.tileY = 0;
@@ -104,7 +104,7 @@ export default class ClientGameplay {
 
 }
 
-export const enum PLACEMENT {
+export const enum Placement {
     VALID,
     INVALID,
     BELOW_LINE,
@@ -114,7 +114,7 @@ export const enum PLACEMENT {
 }
 
 export type FieldPlacement = {
-    type:PLACEMENT,
+    type:Placement,
     tileX:number,
     tileY:number
 }

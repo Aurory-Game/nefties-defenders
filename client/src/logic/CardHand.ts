@@ -9,11 +9,11 @@ export default class CardHand {
     private nextCard:CardId;
     private cardPlayId:number = 1;
     private requests:PlayCardRequest[] = [];
-    private results:MessageType[MessageKind.PlayCardResult][] = [];
+    private results:MessageType[MessageKind.PLAY_CARD_RESULT][] = [];
 
     constructor(private render:CardHandRender) { }
 
-    onCardHand(msg:MessageType[MessageKind.CardHand]):void {
+    onCardHand(msg:MessageType[MessageKind.CARD_HAND]):void {
         this.cards = msg.cards;
         this.nextCard = msg.nextCard;
         this.render.setCard(-1, this.nextCard);
@@ -26,7 +26,7 @@ export default class CardHand {
         return { id, card: this.cards[index] };
     }
 
-    onPlayCardResult(msg:MessageType[MessageKind.PlayCardResult]):void {
+    onPlayCardResult(msg:MessageType[MessageKind.PLAY_CARD_RESULT]):void {
         // Cache, and only process on after schema sync. Colyseus sends messages and schema sync separately,
         // but we consider messages part of state, and it's therefore consistent only after schema sync.
         // We want to avoid our local update working with partially applied state.

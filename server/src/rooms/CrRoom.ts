@@ -15,7 +15,7 @@ export default class CrRoom extends Room<CrRoomSync> {
         this.setState(new CrRoomSync());
         this.engine = new ServerLogicEngine(this);
         this.timestep = new FixedTimestep(TIMESTEP, () => this.onTick());
-        this.onMessage(MessageKind.PlayCard, (client, msg) => this.engine.onPlayCard(client, msg));
+        this.onMessage(MessageKind.PLAY_CARD, (client, msg) => this.engine.onPlayCard(client, msg));
     }
 
     onJoin(client:Client) {

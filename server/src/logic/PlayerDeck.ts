@@ -15,7 +15,7 @@ export default class PlayerDeck {
         this.deckIndex = 0;
     }
 
-    getHand():MessageType[MessageKind.CardHand] {
+    getHand():MessageType[MessageKind.CARD_HAND] {
         return {
             cards: this.hand,
             nextCard: this.getNextCard()

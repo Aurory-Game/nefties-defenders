@@ -2,7 +2,7 @@ import { MapSchema, Schema, filter, type } from '@colyseus/schema';
 import { Client } from 'colyseus';
 import { CardId } from '../../../shared/cards';
 import { MANA_START } from '../../../shared/constants';
-import { GAME_STATE } from '../../../shared/GAME_STATE';
+import { GameState } from '../../../shared/GameState';
 
 export class PlayerSecretSync extends Schema {
     /** Player's current mana. */
@@ -37,7 +37,7 @@ export class EntitySync extends Schema {
 }
 
 export class CrRoomSync extends Schema {
-    @type('uint8') state = GAME_STATE.WAITING;
+    @type('uint8') state = GameState.WAITING;
     @type('uint16') nextStateAt = 0;
     @type('uint16') tick = 0;
     @type({ map: PlayerSync }) players = new MapSchema<PlayerSync>();
