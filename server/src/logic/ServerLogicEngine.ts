@@ -1,6 +1,7 @@
 import { Client } from 'colyseus';
 import { CARDS, CardData, CardId } from '../../../shared/cards';
-import { FIELD_TILES_HEIGHT, FIELD_TILES_WIDTH, MANA_MAX, MANA_REGEN_TICKS, TICKS_3S } from '../../../shared/constants';
+import { FIELD_TILES_HEIGHT, FIELD_TILES_WIDTH, MANA_MAX, MANA_REGEN_TICKS, TICKS_3S,
+    isWater } from '../../../shared/constants';
 import { GAME_STATE } from '../../../shared/GAME_STATE';
 import { MessageKind, MessageType, sendMessage } from '../../../shared/messages';
 import CrRoom from '../rooms/CrRoom';
@@ -112,7 +113,9 @@ export default class ServerLogicEngine {
 
     canSpawn(cardData:CardData, player:PlayerData, tileX:number, tileY:number):boolean {
         // TODO tower influence.
-        return tileX >= 0 && tileX < FIELD_TILES_WIDTH && tileY >= 0 && tileY < FIELD_TILES_HEIGHT;
+        return tileX >= 0 && tileX < FIELD_TILES_WIDTH
+            && tileY >= 0 && tileY < FIELD_TILES_HEIGHT
+            && !isWater(tileX, tileY);
     }
 
     useMana(player:PlayerData, mana:number):void {
