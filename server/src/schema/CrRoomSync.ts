@@ -2,6 +2,7 @@ import { MapSchema, Schema, filter, type } from '@colyseus/schema';
 import { Client } from 'colyseus';
 import { CardId } from '../../../shared/cards';
 import { MANA_START } from '../../../shared/constants';
+import { EntityState } from '../../../shared/entities';
 import { GameState } from '../../../shared/GameState';
 
 export class PlayerSecretSync extends Schema {
@@ -28,11 +29,15 @@ export class EntitySync extends Schema {
     @type('float32') tileX:number;
     @type('float32') tileY:number;
     @type('uint8') type:CardId;
-    constructor(tileX:number, tileY:number, type:CardId) {
+    @type('string') owner:string;
+    @type('uint8') state:EntityState;
+    constructor(tileX:number, tileY:number, type:CardId, owner:string) {
         super();
         this.tileX = tileX;
         this.tileY = tileY;
         this.type = type;
+        this.owner = owner;
+        this.state = EntityState.SPAWNING;
     }
 }
 
@@ -47,4 +52,3 @@ export class CrRoomSync extends Schema {
 function onlyOwnerPlayer(this:PlayerSync, client:Client, value:unknown, root:CrRoomSync) {
     return root.players.get(client.sessionId) == this;
 }
-filter(onlyOwnerPlayer)(PlayerSync.prototype, 'personal');

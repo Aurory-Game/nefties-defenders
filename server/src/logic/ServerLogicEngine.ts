@@ -1,7 +1,7 @@
 import { Client } from 'colyseus';
 import { CARDS, CardData, CardId } from '../../../shared/cards';
-import { FIELD_TILES_HEIGHT, FIELD_TILES_WIDTH, MANA_MAX, MANA_REGEN_TICKS, TICKS_3S,
-    isWater } from '../../../shared/constants';
+import { FIELD_TILES_HEIGHT, FIELD_TILES_WIDTH, MANA_MAX, MANA_REGEN_TICKS, TICKS_1S,
+    TICKS_3S, isWater} from '../../../shared/constants';
 import { GameState } from '../../../shared/GameState';
 import { MessageKind, MessageType, sendMessage } from '../../../shared/messages';
 import CrRoom from '../rooms/CrRoom';
@@ -12,13 +12,13 @@ export default class ServerLogicEngine {
 
     private room:CrRoom;
     private sync:CrRoomSync;
-    private players:Map<string, PlayerData>;
+    private players:Map<string, PlayerData> = new Map();
+    private entities:Map<string, EntityData> = new Map();
     private ids:number = 1;
 
     constructor(room:CrRoom) {
         this.room = room;
         this.sync = room.state;
-        this.players = new Map();
     }
 
     addPlayer(client:Client) {
@@ -29,6 +29,7 @@ export default class ServerLogicEngine {
         this.sync.players.set(client.sessionId, playerSync);
 
         const data:PlayerData = {
+            key: client.sessionId,
             sync: playerSync,
             deck: new PlayerDeck()
         };
@@ -102,7 +103,7 @@ export default class ServerLogicEngine {
             } else {
                 player.deck.useCard(card);
                 this.useMana(player, cardData.manaCost);
-                this.spawnEntity(tileX + 0.5, tileY + 0.5, card);
+                this.spawnEntity(tileX + 0.5, tileY + 0.5, card, player);
                 sendMessage(client, MessageKind.PLAY_CARD_RESULT, {
                     id: id,
                     nextCard: player.deck.getNextCard(),
@@ -126,15 +127,30 @@ export default class ServerLogicEngine {
         secret.mana -= mana;
     }
 
-    spawnEntity(x:number, y:number, cardId:CardId) {
+    spawnEntity(x:number, y:number, cardId:CardId, owner:PlayerData) {
         const id = 'e'+this.ids++;
-        const entitySync = new EntitySync(x, y, cardId);
+        const entitySync = new EntitySync(x, y, cardId, owner.key);
+        const data:EntityData = {
+            owner,
+            sync: entitySync,
+            nextStateAt: this.sync.tick + TICKS_1S,
+            target: null
+        };
         this.sync.entities.set(id, entitySync);
+        this.entities.set(id, data);
     }
 
 }
 
 type PlayerData = {
+    key:string,
     sync:PlayerSync,
     deck:PlayerDeck,
+}
+
+type EntityData = {
+    sync:EntitySync,
+    owner:PlayerData,
+    nextStateAt:number,
+    target:EntityData | null,
 }
