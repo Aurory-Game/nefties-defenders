@@ -89,6 +89,9 @@ class RoomManager {
                     this.timestep.start(zeroTime, startTime, sync.nextStateAt - 1);
                 }
             }
+        } else if (sync.state == GameState.PLAYING) {
+            const time = sync.tick * TIMESTEP;
+            this.gameplay.updateEntities(time, sync.entities);
         }
         this.gameplay.hand.onAfterSchemaSync();
     }

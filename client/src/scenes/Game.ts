@@ -3,17 +3,18 @@ import { GameState } from 'shared/GameState';
 import ManaBar from 'render/ManaBar';
 import CardHandRender from 'render/CardHandRender';
 import FieldRender from 'render/FieldRender';
-import { CardId } from 'shared/cards';
+import { CARDS, CardId } from 'shared/cards';
 import EntityRender from 'render/EntityRender';
 import { FieldPlacement, Placement } from 'logic/ClientGameplay';
+import { EntityType } from 'shared/entities';
 
 export default class Game extends Phaser.Scene {
 
     public manaBar:ManaBar;
     public handRender:CardHandRender;
     public field:FieldRender;
+    public entities:Map<string, EntityRender> = new Map();
     private infoTx:Phaser.GameObjects.Text;
-    private entities:Map<string, EntityRender> = new Map();
     private dummies:Map<number, EntityRender> = new Map();
 
     constructor() {
@@ -34,6 +35,10 @@ export default class Game extends Phaser.Scene {
     /** Custom update function called by `RoomManager` server-synced time. */
     render(time:number) {
         this.manaBar.update(time);
+        for (const entity of this.entities.values()) {
+            const pos = entity.interpolator.getAtTime(time);
+            entity.updatePos({ tileX: pos.x, tileY: pos.y });
+        }
     }
 
     updateText(gameState:GameState, secondsLeft:number) {
@@ -55,7 +60,7 @@ export default class Game extends Phaser.Scene {
 
     updateDummy(id:number, type:CardId, placement:FieldPlacement) {
         if (!this.dummies.has(id)) {
-            const dummy = new EntityRender(this, type);
+            const dummy = new EntityRender(this, CARDS[type].entityType);
             dummy.addMarker();
             this.dummies.set(id, dummy);
             this.field.root.add(dummy.root);
@@ -89,7 +94,7 @@ export default class Game extends Phaser.Scene {
         this.dummies.delete(id);
     }
 
-    addEntity(key:string, pos:{tileX:number, tileY:number}, type:CardId) {
+    addEntity(key:string, pos:{tileX:number, tileY:number}, type:EntityType) {
         const render = new EntityRender(this, type);
         this.entities.set(key, render);
         this.field.root.add(render.root);
@@ -97,6 +102,7 @@ export default class Game extends Phaser.Scene {
     }
 
     removeEntity(key:string) {
+        // TODO handle interpolation delay.
         const render = this.entities.get(key);
         if (render) {
             this.entities.delete(key);

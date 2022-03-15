@@ -1,17 +1,20 @@
-import { CardId } from 'shared/cards';
-import { FIELD_TILE_SIZE } from 'shared/constants';
+import { EntityType } from 'shared/entities';
+import { FIELD_TILE_SIZE, TIMESTEP } from 'shared/constants';
+import Interpolator from 'util/Interpolator';
 
 export default class EntityRender {
 
     root:Phaser.GameObjects.Container;
     marker:Phaser.GameObjects.Graphics;
+    interpolator:Interpolator;
 
-    constructor(scene:Phaser.Scene, type:CardId) {
+    constructor(scene:Phaser.Scene, type:EntityType) {
         this.root = scene.add.container(0, 0);
         const img = scene.add.rectangle(0, 10, 40, 60, 0xcc3333).setOrigin(0.5, 1);
-        const tx = scene.add.text(0, 5, CardId[type]).setOrigin(0.5, 0);
+        const tx = scene.add.text(0, 5, EntityType[type]).setOrigin(0.5, 0);
         tx.setScale(70 / tx.width);
         this.root.add([img, tx]);
+        this.interpolator = new Interpolator(TIMESTEP * 2, TIMESTEP, 2);
     }
 
     addMarker() {

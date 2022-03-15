@@ -1,11 +1,15 @@
 import { Client } from 'colyseus';
+import Vector2 from 'navmesh/dist/math/vector-2';
 import { CARDS, CardData, CardId } from '../../../shared/cards';
 import { FIELD_TILES_HEIGHT, FIELD_TILES_WIDTH, MANA_MAX, MANA_REGEN_TICKS, TICKS_1S,
     TICKS_3S, isWater} from '../../../shared/constants';
+import { ENTITIES, EntityState, EntityType } from '../../../shared/entities';
 import { GameState } from '../../../shared/GameState';
 import { MessageKind, MessageType, sendMessage } from '../../../shared/messages';
 import CrRoom from '../rooms/CrRoom';
 import { CrRoomSync, EntitySync, PlayerSync } from '../schema/CrRoomSync';
+import { move } from './entityLogic';
+import Field from './Field';
 import PlayerDeck from './PlayerDeck';
 
 export default class ServerLogicEngine {
@@ -13,7 +17,8 @@ export default class ServerLogicEngine {
     private room:CrRoom;
     private sync:CrRoomSync;
     private players:Map<string, PlayerData> = new Map();
-    private entities:Map<string, EntityData> = new Map();
+    private entities:Map<string, EntityLogicData> = new Map();
+    private field:Field = new Field();
     private ids:number = 1;
 
     constructor(room:CrRoom) {
@@ -78,6 +83,38 @@ export default class ServerLogicEngine {
                 secret.manaRegenLastTick = this.sync.tick;
             }
         }
+        // Entity update.
+        for (const entity of this.entities.values()) {
+            const data = ENTITIES[entity.sync.type];
+            // TODO validate target.
+            if (this.sync.tick >= entity.nextStateAt) { // Switch state if needed.
+                switch (entity.sync.state) {
+                case EntityState.ATTACKING:
+                    // TODO handle attacking.
+                    break;
+                case EntityState.SPAWNING:
+                    // TODO proper AI, pick target, check distances, etc.
+                    if (data.walkSpeed == 0) {
+                        entity.sync.state = EntityState.STANDING;
+                    } else {
+                        entity.sync.state = EntityState.MOVING;
+                        // Let's just go to the center of opposite side for now.
+                        const targetPos = { x: 9, y: entity.owner.sync.secret.isFlipped ? 32 - 6 : 6 };
+                        const from = { x: entity.sync.tileX, y: entity.sync.tileY };
+                        entity.path = this.field.getPath(from, targetPos, data.isFlying);
+                        entity.pathIndex = 1; // We are already at point 0.
+                    }
+                    break;
+                }
+            }
+            if (entity.sync.state == EntityState.MOVING) {
+                if (move(entity, data.walkSpeed)) {
+                    entity.sync.state = EntityState.ATTACKING;
+                    // TODO targeting system.
+                }
+            }
+            // TODO collisions.
+        }
     }
 
     onPlayCard(client:Client, msg:MessageType[MessageKind.PLAY_CARD] | undefined) {
@@ -103,7 +140,7 @@ export default class ServerLogicEngine {
             } else {
                 player.deck.useCard(card);
                 this.useMana(player, cardData.manaCost);
-                this.spawnEntity(tileX + 0.5, tileY + 0.5, card, player);
+                this.spawnEntity(tileX + 0.5, tileY + 0.5, cardData.entityType, player);
                 sendMessage(client, MessageKind.PLAY_CARD_RESULT, {
                     id: id,
                     nextCard: player.deck.getNextCard(),
@@ -127,14 +164,16 @@ export default class ServerLogicEngine {
         secret.mana -= mana;
     }
 
-    spawnEntity(x:number, y:number, cardId:CardId, owner:PlayerData) {
+    spawnEntity(x:number, y:number, type:EntityType, owner:PlayerData) {
         const id = 'e'+this.ids++;
-        const entitySync = new EntitySync(x, y, cardId, owner.key);
-        const data:EntityData = {
+        const entitySync = new EntitySync(x, y, type, owner.key);
+        const data:EntityLogicData = {
             owner,
             sync: entitySync,
             nextStateAt: this.sync.tick + TICKS_1S,
-            target: null
+            target: null,
+            path: null,
+            pathIndex: 0
         };
         this.sync.entities.set(id, entitySync);
         this.entities.set(id, data);
@@ -148,9 +187,11 @@ type PlayerData = {
     deck:PlayerDeck,
 }
 
-type EntityData = {
+export type EntityLogicData = {
     sync:EntitySync,
     owner:PlayerData,
     nextStateAt:number,
-    target:EntityData | null,
+    target:EntityLogicData | null,
+    path:Vector2[] | null,
+    pathIndex:number
 }

@@ -82,5 +82,7 @@ export function canTarget(attacker:EntityType, victim:EntityType):boolean {
 export enum EntityState {
     SPAWNING = 1,
     MOVING,
+    /** For buildings without target. */
+    STANDING,
     ATTACKING,
 }

@@ -5,6 +5,7 @@ import Game from 'scenes/Game';
 import CardHand from './CardHand';
 import { EntitySync } from 'schema/EntitySync';
 import { PlayerSync } from 'schema/PlayerSync';
+import { MapSchema } from '@colyseus/schema';
 
 export default class ClientGameplay {
 
@@ -93,6 +94,14 @@ export default class ClientGameplay {
 
     removeEntity(key:string) {
         this.game.removeEntity(key);
+    }
+
+    updateEntities(time:number, entities:MapSchema<EntitySync>) {
+        for (const [key, entity] of entities) {
+            const pos = { tileX: entity.tileX, tileY: entity.tileY };
+            this.flipIfNeeded(pos);
+            this.game.entities.get(key).interpolator.add(time, pos.tileX, pos.tileY);
+        }
     }
 
     flipIfNeeded(o:{tileX:number, tileY:number}) {
