@@ -44,6 +44,7 @@ export default class Field {
 
     private pushCircle(circle:SAT.Circle, polys:SAT.Polygon[]) {
         for (const p of polys) {
+            Field.response.clear();
             if (SAT.testPolygonCircle(p, circle, Field.response)) {
                 circle.pos.add(Field.response.overlapV);
             }

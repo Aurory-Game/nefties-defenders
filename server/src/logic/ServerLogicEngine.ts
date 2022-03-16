@@ -8,7 +8,7 @@ import { GameState } from '../../../shared/GameState';
 import { MessageKind, MessageType, sendMessage } from '../../../shared/messages';
 import CrRoom from '../rooms/CrRoom';
 import { CrRoomSync, EntitySync, PlayerSync } from '../schema/CrRoomSync';
-import { moveEntity } from './entityLogic';
+import { collideEntities, moveEntity } from './entityLogic';
 import Field from './Field';
 import PlayerDeck from './PlayerDeck';
 import * as SAT from 'sat';
@@ -85,7 +85,8 @@ export default class ServerLogicEngine {
             }
         }
         // Entity update.
-        for (const entity of this.entities.values()) {
+        const entities = [...this.entities.values()];
+        for (const entity of entities) {
             // TODO validate target.
             if (this.sync.tick >= entity.nextStateAt) { // Switch state if needed.
                 switch (entity.sync.state) {
@@ -115,9 +116,11 @@ export default class ServerLogicEngine {
 
             if (entity.geom instanceof SAT.Circle) {
                 this.field.collideWalls(entity.geom, entity.data.isFlying);
-                // TODO entity-entity collisions.
             }
 
+        }
+        collideEntities(entities);
+        for (const entity of entities) { // Sync positions.
             entity.sync.tileX = entity.geom.pos.x;
             entity.sync.tileY = entity.geom.pos.y;
         }
