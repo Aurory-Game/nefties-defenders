@@ -8,14 +8,15 @@ export default class Field {
 
     constructor() {
         // TODO regenerate on buildings add/remove.
-        const landPolys = buildPolysFromGridMap(FIELD_MAP_DATA, 1, 1, tt => tt != TileType.WATER, 0.4);
+        const shrinkAmount = 0.25;
+        const landPolys = buildPolysFromGridMap(FIELD_MAP_DATA, 1, 1, tt => tt != TileType.WATER, shrinkAmount);
         splitPolys(landPolys);
-        this.landNav = new NavMesh(landPolys, 0.4);
-        const flyPolys = buildPolysFromGridMap(FIELD_MAP_DATA, 1, 1, () => true, 0.4);
+        this.landNav = new NavMesh(landPolys, shrinkAmount);
+        const flyPolys = buildPolysFromGridMap(FIELD_MAP_DATA, 1, 1, () => true, shrinkAmount);
         splitPolys(flyPolys);
 
-        this.landNav = new NavMesh(landPolys, 0.4);
-        this.flyNav = new NavMesh(flyPolys, 0.4);
+        this.landNav = new NavMesh(landPolys, shrinkAmount);
+        this.flyNav = new NavMesh(flyPolys, shrinkAmount);
     }
 
     getPath(from:Point, to:Point, isFlying:boolean) {
@@ -27,11 +28,12 @@ export default class Field {
 /**
  * Since 'navmesh' uses simple A* and uses number of polygons stepped as distance, not real distance,
  * the resulting path can be non-optimal. We improve on that by simply splitting big polygons into smaller ones.
- * Alternative would be modifying 'navmesh' to keep searching for more paths,
- * and calculate the real distance of them.
+ * We only split vertically, as splitting horizontally would create a situation where 'cell' selected by A*
+ * isn't actually the ideal one, and the funnel algorithm that optimizes the path afterwards can't get out of
+ * the cell, creating awkward result.
  */
 function splitPolys(polys:PolyPoints[]):void {
-    const maxSize = 4;
+    const maxSize = 6;
     for (let i = 0; i < polys.length; i++) {
         const rect = polys[i];
         while (rect[1].x - rect[0].x > maxSize) { // Split vertically.
@@ -43,17 +45,6 @@ function splitPolys(polys:PolyPoints[]):void {
                 { x: prevX, y: rect[1].y },
                 { x: prevX, y: rect[2].y },
                 { x: rect[1].x, y: rect[3].y }
-            ]);
-        }
-        while (rect[3].y - rect[0].y > maxSize) { // Split vertically.
-            const prevY = rect[3].y;
-            rect[2].y = rect[0].y + (rect[3].y - rect[0].y) / 2;
-            rect[3].y = rect[2].y;
-            polys.push([
-                { x: rect[3].x, y: rect[3].y },
-                { x: rect[2].x, y: rect[2].y },
-                { x: rect[2].x, y: prevY },
-                { x: rect[3].x, y: prevY }
             ]);
         }
     }
