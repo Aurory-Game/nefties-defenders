@@ -113,7 +113,11 @@ export default class ServerLogicEngine {
                     // TODO targeting system.
                 }
             }
-            // TODO collisions.
+
+            if (data.size.t == 'circle') {
+                this.field.collideWalls(entity.sync, data.size.size / 2, data.isFlying);
+                // TODO entity-entity collisions.
+            }
         }
     }
 

@@ -11,8 +11,10 @@
     },
     "version": "1.0.0",
     "dependencies": {
+        "@types/sat": "^0.0.31",
         "colyseus": "^0.14.23",
         "navmesh": "^2.3.1",
+        "sat": "^0.9.0",
         "typescript": "^4.5.5"
     },
     "devDependencies": {

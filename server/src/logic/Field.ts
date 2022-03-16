@@ -1,10 +1,16 @@
 import { NavMesh, Point, PolyPoints, buildPolysFromGridMap } from 'navmesh';
 import { FIELD_MAP_DATA, TileType } from '../../../shared/constants';
+import * as SAT from 'sat';
 
 export default class Field {
 
     private landNav:NavMesh;
     private flyNav:NavMesh;
+    private waterPolys:SAT.Polygon[];
+    private buildingPolys:SAT.Polygon[];
+
+    private readonly circle = new SAT.Circle();
+    private readonly response = new SAT.Response();
 
     constructor() {
         // TODO regenerate on buildings add/remove.
@@ -17,10 +23,37 @@ export default class Field {
 
         this.landNav = new NavMesh(landPolys, shrinkAmount);
         this.flyNav = new NavMesh(flyPolys, shrinkAmount);
+
+        this.waterPolys = [];
+        // Let's use `buildPolysFromGridMap` in reverse to generate the water rectangles.
+        const waterRects = buildPolysFromGridMap(FIELD_MAP_DATA, 1, 1, tt => tt == TileType.WATER, 0);
+        for (const rect of waterRects) {
+            this.waterPolys.push(new SAT.Polygon(new SAT.Vector(), rect.map(p => new SAT.Vector(p.x, p.y))));
+        }
+
+        this.buildingPolys = [];
     }
 
     getPath(from:Point, to:Point, isFlying:boolean) {
         return (isFlying ? this.flyNav : this.landNav).findPath(from, to);
+    }
+
+    collideWalls(pos:{tileX:number, tileY:number}, radius:number, isFlying:boolean) {
+        this.circle.pos.x = pos.tileX;
+        this.circle.pos.y = pos.tileY;
+        this.circle.r = radius;
+        if (!isFlying) this.pushCircle(this.waterPolys);
+        this.pushCircle(this.buildingPolys);
+        pos.tileX = this.circle.pos.x;
+        pos.tileY = this.circle.pos.y;
+    }
+
+    private pushCircle(polys:SAT.Polygon[]) {
+        for (const p of polys) {
+            if (SAT.testPolygonCircle(p, this.circle, this.response)) {
+                this.circle.pos.add(this.response.overlapV);
+            }
+        }
     }
 
 }
