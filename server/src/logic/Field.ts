@@ -9,8 +9,7 @@ export default class Field {
     private waterPolys:SAT.Polygon[];
     private buildingPolys:SAT.Polygon[];
 
-    private readonly circle = new SAT.Circle();
-    private readonly response = new SAT.Response();
+    private static readonly response = new SAT.Response();
 
     constructor() {
         // TODO regenerate on buildings add/remove.
@@ -38,20 +37,15 @@ export default class Field {
         return (isFlying ? this.flyNav : this.landNav).findPath(from, to);
     }
 
-    collideWalls(pos:{tileX:number, tileY:number}, radius:number, isFlying:boolean) {
-        this.circle.pos.x = pos.tileX;
-        this.circle.pos.y = pos.tileY;
-        this.circle.r = radius;
-        if (!isFlying) this.pushCircle(this.waterPolys);
-        this.pushCircle(this.buildingPolys);
-        pos.tileX = this.circle.pos.x;
-        pos.tileY = this.circle.pos.y;
+    collideWalls(circle:SAT.Circle, isFlying:boolean) {
+        if (!isFlying) this.pushCircle(circle, this.waterPolys);
+        this.pushCircle(circle, this.buildingPolys);
     }
 
-    private pushCircle(polys:SAT.Polygon[]) {
+    private pushCircle(circle:SAT.Circle, polys:SAT.Polygon[]) {
         for (const p of polys) {
-            if (SAT.testPolygonCircle(p, this.circle, this.response)) {
-                this.circle.pos.add(this.response.overlapV);
+            if (SAT.testPolygonCircle(p, circle, Field.response)) {
+                circle.pos.add(Field.response.overlapV);
             }
         }
     }

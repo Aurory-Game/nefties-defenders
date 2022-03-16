@@ -3,14 +3,15 @@ import Vector2 from 'navmesh/dist/math/vector-2';
 import { CARDS, CardData, CardId } from '../../../shared/cards';
 import { FIELD_TILES_HEIGHT, FIELD_TILES_WIDTH, MANA_MAX, MANA_REGEN_TICKS, TICKS_1S,
     TICKS_3S, isWater} from '../../../shared/constants';
-import { ENTITIES, EntityState, EntityType } from '../../../shared/entities';
+import { ENTITIES, EntityData, EntityState, EntityType } from '../../../shared/entities';
 import { GameState } from '../../../shared/GameState';
 import { MessageKind, MessageType, sendMessage } from '../../../shared/messages';
 import CrRoom from '../rooms/CrRoom';
 import { CrRoomSync, EntitySync, PlayerSync } from '../schema/CrRoomSync';
-import { move } from './entityLogic';
+import { moveEntity } from './entityLogic';
 import Field from './Field';
 import PlayerDeck from './PlayerDeck';
+import * as SAT from 'sat';
 
 export default class ServerLogicEngine {
 
@@ -85,7 +86,6 @@ export default class ServerLogicEngine {
         }
         // Entity update.
         for (const entity of this.entities.values()) {
-            const data = ENTITIES[entity.sync.type];
             // TODO validate target.
             if (this.sync.tick >= entity.nextStateAt) { // Switch state if needed.
                 switch (entity.sync.state) {
@@ -94,30 +94,32 @@ export default class ServerLogicEngine {
                     break;
                 case EntityState.SPAWNING:
                     // TODO proper AI, pick target, check distances, etc.
-                    if (data.walkSpeed == 0) {
+                    if (entity.data.walkSpeed == 0) {
                         entity.sync.state = EntityState.STANDING;
                     } else {
                         entity.sync.state = EntityState.MOVING;
                         // Let's just go to the center of opposite side for now.
                         const targetPos = { x: 9, y: entity.owner.sync.secret.isFlipped ? 32 - 6 : 6 };
-                        const from = { x: entity.sync.tileX, y: entity.sync.tileY };
-                        entity.path = this.field.getPath(from, targetPos, data.isFlying);
+                        entity.path = this.field.getPath(entity.geom.pos, targetPos, entity.data.isFlying);
                         entity.pathIndex = 1; // We are already at point 0.
                     }
                     break;
                 }
             }
             if (entity.sync.state == EntityState.MOVING) {
-                if (move(entity, data.walkSpeed)) {
+                if (moveEntity(entity, entity.data.walkSpeed)) {
                     entity.sync.state = EntityState.ATTACKING;
                     // TODO targeting system.
                 }
             }
 
-            if (data.size.t == 'circle') {
-                this.field.collideWalls(entity.sync, data.size.size / 2, data.isFlying);
+            if (entity.geom instanceof SAT.Circle) {
+                this.field.collideWalls(entity.geom, entity.data.isFlying);
                 // TODO entity-entity collisions.
             }
+
+            entity.sync.tileX = entity.geom.pos.x;
+            entity.sync.tileY = entity.geom.pos.y;
         }
     }
 
@@ -171,8 +173,21 @@ export default class ServerLogicEngine {
     spawnEntity(x:number, y:number, type:EntityType, owner:PlayerData) {
         const id = 'e'+this.ids++;
         const entitySync = new EntitySync(x, y, type, owner.key);
-        const data:EntityLogicData = {
+        const data = ENTITIES[type];
+        const pos = new SAT.Vector(x, y);
+        let geom;
+        switch (data.size.t) {
+        case 'circle':
+            geom = new SAT.Circle(pos, data.size.size / 2);
+            break;
+        case 'square':
+            geom = new SAT.Box(pos, data.size.size, data.size.size).toPolygon();
+            break;
+        }
+        const logicData:EntityLogicData = {
             owner,
+            geom,
+            data,
             sync: entitySync,
             nextStateAt: this.sync.tick + TICKS_1S,
             target: null,
@@ -180,7 +195,7 @@ export default class ServerLogicEngine {
             pathIndex: 0
         };
         this.sync.entities.set(id, entitySync);
-        this.entities.set(id, data);
+        this.entities.set(id, logicData);
     }
 
 }
@@ -194,6 +209,8 @@ type PlayerData = {
 export type EntityLogicData = {
     sync:EntitySync,
     owner:PlayerData,
+    geom:SAT.Circle|SAT.Polygon,
+    data:EntityData,
     nextStateAt:number,
     target:EntityLogicData | null,
     path:Vector2[] | null,
