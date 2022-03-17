@@ -36,10 +36,10 @@ export default class ServerLogicEngine {
 
         const data:PlayerData = {
             key: client.sessionId,
+            client,
             sync: playerSync,
             deck: new PlayerDeck()
         };
-        sendMessage(client, MessageKind.CARD_HAND, data.deck.getHand());
         this.players.set(client.sessionId, data);
     }
 
@@ -52,7 +52,10 @@ export default class ServerLogicEngine {
         if (this.sync.state == GameState.WAITING) {
             this.sync.state = GameState.STARTING;
             this.sync.nextStateAt = this.sync.tick + TICKS_3S; // Start in three seconds.
-            this.players.forEach(player => player.sync.secret.manaRegenLastTick = this.sync.nextStateAt);
+            for (const player of this.players.values()) {
+                player.sync.secret.manaRegenLastTick = this.sync.nextStateAt;
+                sendMessage(player.client, MessageKind.CARD_HAND, player.deck.getHand());
+            }
         }
     }
 
@@ -205,6 +208,7 @@ export default class ServerLogicEngine {
 
 type PlayerData = {
     key:string,
+    client:Client,
     sync:PlayerSync,
     deck:PlayerDeck,
 }
