@@ -26,7 +26,7 @@ export function collideEntities(entities:EntityLogicData[]) {
         if (e1.geom instanceof SAT.Circle) {
             for (let ii = i + 1; ii < entities.length; ii++) {
                 const e2 = entities[ii];
-                if (e2.geom instanceof SAT.Circle) {
+                if (e2.geom instanceof SAT.Circle && e1.data.isFlying == e2.data.isFlying) {
                     response.clear();
                     if (SAT.testCircleCircle(e1.geom, e2.geom, response)) {
                         // Push each other out, based on their sizes.
