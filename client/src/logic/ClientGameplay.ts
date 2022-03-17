@@ -98,9 +98,12 @@ export default class ClientGameplay {
 
     updateEntities(time:number, entities:MapSchema<EntitySync>) {
         for (const [key, entity] of entities) {
-            const pos = { tileX: entity.tileX, tileY: entity.tileY };
-            this.flipIfNeeded(pos);
-            this.game.entities.get(key).interpolator.add(time, pos.tileX, pos.tileY);
+            const render = this.game.entities.get(key);
+            if (render.interpolator) {
+                const pos = { tileX: entity.tileX, tileY: entity.tileY };
+                this.flipIfNeeded(pos);
+                render.interpolator.add(time, pos.tileX, pos.tileY);
+            }
         }
     }
 

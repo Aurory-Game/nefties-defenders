@@ -2,7 +2,7 @@ import { Client } from 'colyseus';
 import Vector2 from 'navmesh/dist/math/vector-2';
 import { CARDS, CardData, CardId } from '../../../shared/cards';
 import { FIELD_TILES_HEIGHT, FIELD_TILES_WIDTH, MANA_MAX, MANA_REGEN_TICKS, TICKS_1S,
-    TICKS_3S, isWater} from '../../../shared/constants';
+    TICKS_3S, TOWERS, isWater} from '../../../shared/constants';
 import { ENTITIES, EntityData, EntityState, EntityType } from '../../../shared/entities';
 import { GameState } from '../../../shared/GameState';
 import { MessageKind, MessageType, sendMessage } from '../../../shared/messages';
@@ -55,7 +55,18 @@ export default class ServerLogicEngine {
             for (const player of this.players.values()) {
                 player.sync.secret.manaRegenLastTick = this.sync.nextStateAt;
                 sendMessage(player.client, MessageKind.CARD_HAND, player.deck.getHand());
+                for (const tower of TOWERS) {
+                    let { x, y } = tower;
+                    if (player.sync.secret.isFlipped) {
+                        x = FIELD_TILES_WIDTH - x;
+                        y = FIELD_TILES_HEIGHT - y;
+                    }
+                    this.spawnEntity(x, y, tower.type, player);
+                }
             }
+            const buildings = [];
+            for (const e of this.entities.values()) if (e.geom instanceof SAT.Polygon) buildings.push(e.geom);
+            this.field.initialize(buildings);
         }
     }
 
@@ -181,13 +192,20 @@ export default class ServerLogicEngine {
         const entitySync = new EntitySync(x, y, type, owner.key);
         const data = ENTITIES[type];
         const pos = new SAT.Vector(x, y);
+        const { size } = data.size;
+        const halfSize = size / 2;
         let geom;
         switch (data.size.t) {
         case 'circle':
-            geom = new SAT.Circle(pos, data.size.size / 2);
+            geom = new SAT.Circle(pos, size / 2);
             break;
         case 'square':
-            geom = new SAT.Box(pos, data.size.size, data.size.size).toPolygon();
+            geom = new SAT.Polygon(pos, [
+                new SAT.Vector(-halfSize, -halfSize),
+                new SAT.Vector(halfSize, -halfSize),
+                new SAT.Vector(halfSize, halfSize),
+                new SAT.Vector(-halfSize, halfSize),
+            ]);
             break;
         }
         const logicData:EntityLogicData = {

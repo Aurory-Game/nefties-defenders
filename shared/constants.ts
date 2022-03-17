@@ -1,3 +1,5 @@
+import { EntityType } from './entities';
+
 export const ROOM_NAME:string = 'cr';
 /** Timestep in ms. */
 export const TIMESTEP:number = 50;
@@ -21,6 +23,12 @@ export const HAND_SIZE:number = 4;
 export const FIELD_TILES_WIDTH:number = 18;
 export const FIELD_TILES_HEIGHT:number = 32;
 export const FIELD_TILE_SIZE:number = 32;
+
+export const TOWERS = [
+    { x: 9, y: 29, type: EntityType.BigTower },
+    { x: 3.5, y: 26.5, type: EntityType.SmallTower },
+    { x: 14.5, y: 26.5, type: EntityType.SmallTower },
+];
 
 export const FIELD_MAP =
 `

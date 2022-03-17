@@ -36,8 +36,10 @@ export default class Game extends Phaser.Scene {
     render(time:number) {
         this.manaBar.update(time);
         for (const entity of this.entities.values()) {
-            const pos = entity.interpolator.getAtTime(time);
-            entity.updatePos({ tileX: pos.x, tileY: pos.y });
+            if (entity.interpolator) {
+                const pos = entity.interpolator.getAtTime(time);
+                entity.updatePos({ tileX: pos.x, tileY: pos.y });
+            }
         }
     }
 

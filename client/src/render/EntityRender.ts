@@ -1,4 +1,4 @@
-import { EntityType } from 'shared/entities';
+import { ENTITIES, EntityType } from 'shared/entities';
 import { FIELD_TILE_SIZE, TIMESTEP } from 'shared/constants';
 import Interpolator from 'util/Interpolator';
 
@@ -14,7 +14,8 @@ export default class EntityRender {
         const tx = scene.add.text(0, 5, EntityType[type]).setOrigin(0.5, 0);
         tx.setScale(70 / tx.width);
         this.root.add([img, tx]);
-        this.interpolator = new Interpolator(TIMESTEP * 2, TIMESTEP, 2);
+        if (ENTITIES[type].walkSpeed > 0) this.interpolator = new Interpolator(TIMESTEP * 2, TIMESTEP, 2);
+        else this.interpolator = null;
     }
 
     addMarker() {
