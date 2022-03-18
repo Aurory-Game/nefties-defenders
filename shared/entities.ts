@@ -72,6 +72,8 @@ export const ENTITIES:Record<EntityType, EntityData> = {
 
 /** The minimum range needed to consider a unit Ranged. */
 const RANGED_RANGE = 4;
+/** The scan view range. How far an entity will pick a target from. */
+export const VIEW_RANGE = 5;
 
 export function canTarget(attacker:EntityType, victim:EntityType):boolean {
     const atk = ENTITIES[attacker];

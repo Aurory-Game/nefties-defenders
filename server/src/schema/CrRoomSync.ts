@@ -28,13 +28,15 @@ export class EntitySync extends Schema {
     @type('float32') tileX:number;
     @type('float32') tileY:number;
     @type('uint8') type:EntityType;
+    @type('uint16') hp:number;
     @type('string') owner:string;
     @type('uint8') state:EntityState;
-    constructor(tileX:number, tileY:number, type:EntityType, owner:string) {
+    constructor(tileX:number, tileY:number, type:EntityType, hp:number, owner:string) {
         super();
         this.tileX = tileX;
         this.tileY = tileY;
         this.type = type;
+        this.hp = hp;
         this.owner = owner;
         this.state = EntityState.SPAWNING;
     }

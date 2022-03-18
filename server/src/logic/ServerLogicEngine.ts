@@ -100,6 +100,15 @@ export default class ServerLogicEngine {
             }
         }
         this.entityManager.update(this.sync.tick);
+        for (const [key, entity] of this.entities) {
+            if (entity.sync.hp <= 0) {
+                this.entities.delete(key);
+                if (entity.geom instanceof SAT.Polygon) this.field.removeBuilding(entity.geom);
+                const i = this.entityManager.entities.indexOf(entity);
+                if (i >= 0) this.entityManager.entities.splice(i, 1);
+                this.sync.entities.delete(key);
+            }
+        }
     }
 
     onPlayCard(client:Client, msg:MessageType[MessageKind.PLAY_CARD] | undefined) {
@@ -151,8 +160,8 @@ export default class ServerLogicEngine {
 
     spawnEntity(x:number, y:number, type:EntityType, owner:PlayerData) {
         const id = 'e'+this.ids++;
-        const entitySync = new EntitySync(x, y, type, owner.key);
         const data = ENTITIES[type];
+        const entitySync = new EntitySync(x, y, type, data.hitpoints, owner.key);
         const pos = new SAT.Vector(x, y);
         const { size } = data.size;
         const halfSize = size / 2;

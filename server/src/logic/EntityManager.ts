@@ -1,11 +1,11 @@
-import { TIMESTEP_S } from '../../../shared/constants';
+import { FIELD_TILES_HEIGHT, FIELD_TILES_HEIGHT_MID, FIELD_TILES_WIDTH_MID, LEFT_LANE, RIGHT_LANE,
+    TICKS_1S,
+    TIMESTEP_S } from '../../../shared/constants';
 import { EntityLogicData } from './ServerLogicEngine';
 import * as SAT from 'sat';
-import { EntityState } from '../../../shared/entities';
+import { EntityState, VIEW_RANGE, canTarget } from '../../../shared/entities';
 import Field from './Field';
-
-const response = new SAT.Response();
-const tempVec = new SAT.Vector();
+import { Point } from 'navmesh';
 
 export default class EntityManager {
 
@@ -13,54 +13,131 @@ export default class EntityManager {
 
     constructor(public field:Field) { }
 
-    // addEntity()
-
     update(tick:number) {
         this.ai(tick);
         collideEntities(this.entities);
+        for (const entity of this.entities) if (entity.geom instanceof SAT.Circle) {
+            this.field.collideWalls(entity.geom, entity.data.isFlying);
+        }
         for (const entity of this.entities) { // Sync positions.
             entity.sync.tileX = entity.geom.pos.x;
             entity.sync.tileY = entity.geom.pos.y;
         }
     }
 
-    ai(curTick:number) {
+    private ai(curTick:number) {
+        // Update all entities' actions.
         for (const entity of this.entities) {
-            // TODO validate target.
-            if (curTick >= entity.nextStateAt) { // Switch state if needed.
+            if (curTick == entity.nextStateAt) { // Activity ends this tick.
                 switch (entity.sync.state) {
                 case EntityState.ATTACKING:
-                    // TODO handle attacking.
-                    break;
-                case EntityState.SPAWNING:
-                    // TODO proper AI, pick target, check distances, etc.
-                    if (entity.data.walkSpeed == 0) {
-                        entity.sync.state = EntityState.STANDING;
-                    } else {
-                        entity.sync.state = EntityState.MOVING;
-                        // Let's just go to the center of opposite side for now.
-                        const targetPos = { x: 9, y: entity.owner.sync.secret.isFlipped ? 32 - 6 : 6 };
-                        entity.path = this.field.getPath(entity.geom.pos, targetPos, entity.data.isFlying);
-                        entity.pathIndex = 1; // We are already at point 0.
+                    if (entity.target) {
+                        entity.target.sync.hp -= entity.data.damage;
+                        // TODO projectile events.
                     }
                     break;
                 }
             }
+            if (curTick >= entity.nextStateAt) { // Is not locked in an activity.
+                this.checkNextAction(entity, curTick);
+            }
+        }
+
+        // Now move them all.
+        for (const entity of this.entities) {
             if (entity.sync.state == EntityState.MOVING) {
-                if (moveEntity(entity, entity.data.walkSpeed)) {
-                    entity.sync.state = EntityState.ATTACKING;
-                    // TODO targeting system.
-                }
+                moveEntity(entity, entity.data.walkSpeed);
             }
-
-            if (entity.geom instanceof SAT.Circle) {
-                this.field.collideWalls(entity.geom, entity.data.isFlying);
-            }
-
         }
     }
 
+    private checkNextAction(entity:EntityLogicData, curTick:number) {
+        if (entity.target && entity.target.sync.hp <= 0) { // Validate target.
+            entity.target = null;
+        }
+        if (!entity.target) this.setTarget(entity); // Set if needed.
+        if (entity.target) {
+            if (inAttackRange(entity, entity.target)) {
+                triggerAttack(entity, curTick);
+            } else {
+                if (entity.data.walkSpeed == 0)
+                    throw 'Assertion failed: Buildings should not have target out of range.';
+                entity.sync.state = EntityState.MOVING;
+                this.setPathTowards(entity, entity.target);
+            }
+        } else { // No target.
+            if (entity.data.walkSpeed == 0) { // Buildings just stand there.
+                entity.sync.state = EntityState.STANDING;
+            } else { // Entities walk to the other side.
+                this.walkToOpponentSide(entity);
+            }
+        }
+    }
+
+    setPathTowards(entity:EntityLogicData, target:EntityLogicData) {
+        if (target.geom instanceof SAT.Polygon) {
+            // Buildings are cut out of navmesh, need to find point in front of them,
+            // as the 'navmesh' library doesn't handle that.
+            const targetPos = findBuildingPoint(entity.geom.pos, target.geom, 0.5);
+            this.setPath(entity, targetPos);
+        } else { // For normal entities we can just walk towards their center.
+            this.setPath(entity, target.geom.pos);
+        }
+    }
+
+    private setTarget(entity:EntityLogicData) {
+        // TODO don't target entities that are going to die.
+        let range = entity.data.range;
+        if (entity.data.walkSpeed > 0 && range < VIEW_RANGE) // If not a building, target up to view range.
+            range = VIEW_RANGE;
+        const rangeSq = range ** 2;
+        entity.target = null;
+        let closestDist = Number.POSITIVE_INFINITY;
+        for (const other of this.entities) {
+            if (other.owner == entity.owner
+                || other.sync.state == EntityState.SPAWNING
+                || !canTarget(entity.sync.type, other.sync.type)
+                || other.sync.hp <= 0) continue;
+            const distSq = tempVec.copy(other.geom.pos).sub(entity.geom.pos).len2();
+            if (distSq <= rangeSq && distSq < closestDist) {
+                entity.target = other;
+                closestDist = distSq;
+            }
+        }
+    }
+
+    private walkToOpponentSide(entity:EntityLogicData) {
+        entity.sync.state = EntityState.MOVING;
+        const { isFlipped } = entity.owner.sync.secret;
+        const { pos } = entity.geom;
+        if (entity.data.isFlying) { // Fly directly 'up'.
+            tempVec.x = pos.x;
+            tempVec.y = isFlipped ? FIELD_TILES_HEIGHT - 7 : 7;
+        } else {
+            // Walk to the bridge first. Makes sure the pathfinding won't try to go around the other side.
+            tempVec.x = pos.x < FIELD_TILES_WIDTH_MID ? LEFT_LANE : RIGHT_LANE;
+            const isOnHomeSide = isFlipped ? pos.y < FIELD_TILES_HEIGHT_MID : pos.y > FIELD_TILES_HEIGHT_MID;
+            if (isOnHomeSide) { // Walk towards the bridge.
+                tempVec.y = FIELD_TILES_HEIGHT_MID + (isFlipped ? 1 : -1);
+            } else { // Walk to the opponent.
+                tempVec.y = isFlipped ? FIELD_TILES_HEIGHT - 7 : 7;
+            }
+        }
+
+        this.setPath(entity, tempVec);
+    }
+
+    private setPath(entity:EntityLogicData, target:Point) {
+        entity.path = this.field.getPath(entity.geom.pos, target, entity.data.isFlying);
+        entity.pathIndex = 1; // We are already at point 0.
+    }
+
 }
+
+const response = new SAT.Response();
+const tempVec = new SAT.Vector();
+const tempPos = new SAT.Vector();
+const tempLine = new SAT.Polygon(new SAT.Vector(), [new SAT.Vector(), new SAT.Vector(1)]);
 
 function moveEntity(entity:EntityLogicData, speed:number):boolean {
     if (!entity.path) return true;
@@ -103,4 +180,33 @@ function collideEntities(entities:EntityLogicData[]) {
             }
         }
     }
+}
+
+/** Does not check if the target is valid. */
+function inAttackRange(entity:EntityLogicData, target:EntityLogicData) {
+    // TODO for ranged attack, check no building is in the way.
+    let targetPos = target.geom.pos;
+    if (target.geom instanceof SAT.Polygon) { // Attack at edge of building.
+        targetPos = findBuildingPoint(entity.geom.pos, target.geom);
+    }
+    return tempVec.copy(entity.geom.pos).sub(targetPos).len2() < (entity.data.range ** 2);
+}
+
+function triggerAttack(entity:EntityLogicData, curTick:number) {
+    entity.sync.state = EntityState.ATTACKING;
+    entity.nextStateAt = curTick + Math.ceil(entity.data.hitSpeed * TICKS_1S);
+}
+
+function findBuildingPoint(from:SAT.Vector, building:SAT.Polygon, offset:number = 0) {
+    tempPos.copy(building.pos).sub(from);
+    const len = tempPos.len() - 0.5;
+    tempPos.normalize().scale(len);
+    tempLine.points[1].copy(tempPos);
+    tempLine.pos.copy(from);
+    tempLine.setPoints(tempLine.points);
+    // Cast a ray from `entity` to `target`, but half a tile shorter, so we get correct edge.
+    response.clear();
+    SAT.testPolygonPolygon(building, tempLine, response);
+    response.overlapN.scale(response.overlap + offset);
+    return tempPos.copy(building.pos).add(response.overlapN);
 }

@@ -21,8 +21,12 @@ export const MANA_REGEN_TICKS:number = Math.round(1000 / TIMESTEP);
 export const HAND_SIZE:number = 4;
 
 export const FIELD_TILES_WIDTH:number = 18;
+export const FIELD_TILES_WIDTH_MID:number = FIELD_TILES_WIDTH / 2;
 export const FIELD_TILES_HEIGHT:number = 32;
+export const FIELD_TILES_HEIGHT_MID:number = FIELD_TILES_HEIGHT / 2;
 export const FIELD_TILE_SIZE:number = 32;
+export const LEFT_LANE:number = 3.5;
+export const RIGHT_LANE:number = FIELD_TILES_WIDTH - LEFT_LANE;
 
 export const TOWERS = [
     { x: 9, y: 29, type: EntityType.BigTower },
