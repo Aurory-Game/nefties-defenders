@@ -3,12 +3,12 @@ import Vector2 from 'navmesh/dist/math/vector-2';
 import { CARDS, CardData, CardId } from '../../../shared/cards';
 import { FIELD_TILES_HEIGHT, FIELD_TILES_WIDTH, MANA_MAX, MANA_REGEN_TICKS, TICKS_1S,
     TICKS_3S, TOWERS, isWater} from '../../../shared/constants';
-import { ENTITIES, EntityData, EntityState, EntityType } from '../../../shared/entities';
+import { ENTITIES, EntityData, EntityType } from '../../../shared/entities';
 import { GameState } from '../../../shared/GameState';
 import { MessageKind, MessageType, sendMessage } from '../../../shared/messages';
 import CrRoom from '../rooms/CrRoom';
 import { CrRoomSync, EntitySync, PlayerSync } from '../schema/CrRoomSync';
-import { collideEntities, moveEntity } from './entityLogic';
+import EntityManager from './EntityManager';
 import Field from './Field';
 import PlayerDeck from './PlayerDeck';
 import * as SAT from 'sat';
@@ -20,6 +20,7 @@ export default class ServerLogicEngine {
     private players:Map<string, PlayerData> = new Map();
     private entities:Map<string, EntityLogicData> = new Map();
     private field:Field = new Field();
+    private entityManager:EntityManager = new EntityManager(this.field);
     private ids:number = 1;
 
     constructor(room:CrRoom) {
@@ -98,46 +99,7 @@ export default class ServerLogicEngine {
                 secret.manaRegenLastTick = this.sync.tick;
             }
         }
-        // Entity update.
-        const entities = [...this.entities.values()];
-        for (const entity of entities) {
-            // TODO validate target.
-            if (this.sync.tick >= entity.nextStateAt) { // Switch state if needed.
-                switch (entity.sync.state) {
-                case EntityState.ATTACKING:
-                    // TODO handle attacking.
-                    break;
-                case EntityState.SPAWNING:
-                    // TODO proper AI, pick target, check distances, etc.
-                    if (entity.data.walkSpeed == 0) {
-                        entity.sync.state = EntityState.STANDING;
-                    } else {
-                        entity.sync.state = EntityState.MOVING;
-                        // Let's just go to the center of opposite side for now.
-                        const targetPos = { x: 9, y: entity.owner.sync.secret.isFlipped ? 32 - 6 : 6 };
-                        entity.path = this.field.getPath(entity.geom.pos, targetPos, entity.data.isFlying);
-                        entity.pathIndex = 1; // We are already at point 0.
-                    }
-                    break;
-                }
-            }
-            if (entity.sync.state == EntityState.MOVING) {
-                if (moveEntity(entity, entity.data.walkSpeed)) {
-                    entity.sync.state = EntityState.ATTACKING;
-                    // TODO targeting system.
-                }
-            }
-
-            if (entity.geom instanceof SAT.Circle) {
-                this.field.collideWalls(entity.geom, entity.data.isFlying);
-            }
-
-        }
-        collideEntities(entities);
-        for (const entity of entities) { // Sync positions.
-            entity.sync.tileX = entity.geom.pos.x;
-            entity.sync.tileY = entity.geom.pos.y;
-        }
+        this.entityManager.update(this.sync.tick);
     }
 
     onPlayCard(client:Client, msg:MessageType[MessageKind.PLAY_CARD] | undefined) {
@@ -220,6 +182,7 @@ export default class ServerLogicEngine {
         };
         this.sync.entities.set(id, entitySync);
         this.entities.set(id, logicData);
+        this.entityManager.entities.push(logicData);
     }
 
 }
