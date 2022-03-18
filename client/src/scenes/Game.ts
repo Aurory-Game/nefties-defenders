@@ -6,7 +6,7 @@ import FieldRender from 'render/FieldRender';
 import { CARDS, CardId } from 'shared/cards';
 import EntityRender from 'render/EntityRender';
 import { FieldPlacement, Placement } from 'logic/ClientGameplay';
-import { EntityType } from 'shared/entities';
+import { EntityState, EntityType } from 'shared/entities';
 
 export default class Game extends Phaser.Scene {
 
@@ -110,6 +110,10 @@ export default class Game extends Phaser.Scene {
             this.entities.delete(key);
             render.destroy();
         }
+    }
+
+    entityStateChanged(key:string, state:EntityState) {
+        this.entities.get(key)?.setState(state);
     }
 
     showError(tx:string) {

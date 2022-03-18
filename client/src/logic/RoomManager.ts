@@ -49,6 +49,14 @@ class RoomManager {
         };
         this.sync.entities.onAdd = (entity, key) => {
             this.gameplay.addEntity(entity, key);
+            entity.onChange= changes => {
+                for (const change of changes) {
+                    if (change.field == 'state') {
+                        // TODO interpolation delay.
+                        this.game.entityStateChanged(key, change.value);
+                    }
+                }
+            };
         };
         this.sync.entities.onRemove = (entity, key) => {
             this.gameplay.removeEntity(key);
