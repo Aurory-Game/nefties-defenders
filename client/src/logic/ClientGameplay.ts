@@ -25,11 +25,11 @@ export default class ClientGameplay {
         const id = this.hand.getNextId();
         // TODO display invalid placement shape.
         if (isDone) {
-            if (placement.type != Placement.VALID)
-                placement.type = Placement.ERR_INVALID_POS;
-            else if (this.ourPlayer.secret.mana < this.hand.predictMana(index))
+            if (placement.type != Placement.VALID) {
+                if (placement.type != Placement.BELOW_LINE) placement.type = Placement.ERR_INVALID_POS;
+            } else if (this.ourPlayer.secret.mana < this.hand.predictMana(index)) {
                 placement.type = Placement.ERR_NO_MANA;
-            else {
+            } else {
                 const cardReq = this.hand.playCard(index);
                 sendMessage(this.room, MessageKind.PLAY_CARD, {
                     card: cardReq.card,
