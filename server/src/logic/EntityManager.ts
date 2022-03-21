@@ -120,7 +120,19 @@ export default class EntityManager {
             if (isOnHomeSide) { // Walk towards the bridge.
                 tempVec.y = FIELD_TILES_HEIGHT_MID + (isFlipped ? 1 : -1);
             } else { // Walk to the opponent.
-                tempVec.y = isFlipped ? FIELD_TILES_HEIGHT - 7 : 7;
+                let hasSmallTower = false;
+                for (const e of this.entities)
+                    if (e.geom instanceof SAT.Polygon
+                    && e.owner != entity.owner && e.geom.pos.x > FIELD_TILES_WIDTH_MID + 1) {
+                        hasSmallTower = true;
+                        break;
+                    }
+                const yPos = hasSmallTower ? 7 : 3;
+                tempVec.y = isFlipped ? FIELD_TILES_HEIGHT - yPos : yPos;
+                if (!hasSmallTower && (isFlipped ? pos.y > FIELD_TILES_HEIGHT - 4 : pos.y < 4)) {
+                    // Walk towards big tower.
+                    tempVec.x = pos.x < FIELD_TILES_WIDTH_MID ? LEFT_LANE + 3.5 : RIGHT_LANE - 3.5;
+                }
             }
         }
 
@@ -184,12 +196,11 @@ function collideEntities(entities:EntityLogicData[]) {
 
 /** Does not check if the target is valid. */
 function inAttackRange(entity:EntityLogicData, target:EntityLogicData) {
-    // TODO for ranged attack, check no building is in the way.
     let targetPos = target.geom.pos;
     if (target.geom instanceof SAT.Polygon) { // Attack at edge of building.
         targetPos = findBuildingPoint(entity.geom.pos, target.geom);
     }
-    return tempVec.copy(entity.geom.pos).sub(targetPos).len2() < (entity.data.range ** 2);
+    return tempVec.copy(entity.geom.pos).sub(targetPos).len2() <= (entity.data.range ** 2);
 }
 
 function triggerAttack(entity:EntityLogicData, curTick:number) {

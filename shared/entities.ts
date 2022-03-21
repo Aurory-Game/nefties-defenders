@@ -24,7 +24,7 @@ type EntitySize = { t:'circle', size:number } | { t:'square', size:number };
 
 export const ENTITIES:Record<EntityType, EntityData> = {
     [EntityType.BigTower]: {
-        hitpoints: 15000,
+        hitpoints: 5000,
         damage: 500,
         range: 8,
         hitSpeed: 4,
@@ -33,7 +33,7 @@ export const ENTITIES:Record<EntityType, EntityData> = {
         size: { t: 'square', size: 4 }
     },
     [EntityType.SmallTower]: {
-        hitpoints: 10000,
+        hitpoints: 3000,
         damage: 300,
         range: 6,
         hitSpeed: 2,
