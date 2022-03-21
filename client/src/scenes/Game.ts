@@ -36,10 +36,7 @@ export default class Game extends Phaser.Scene {
     render(time:number) {
         this.manaBar.update(time);
         for (const entity of this.entities.values()) {
-            if (entity.interpolator) {
-                const pos = entity.interpolator.getAtTime(time);
-                entity.updatePos({ tileX: pos.x, tileY: pos.y });
-            }
+            entity.update(time);
         }
     }
 
@@ -73,7 +70,7 @@ export default class Game extends Phaser.Scene {
         switch (placement.type) {
         case Placement.VALID:
         case Placement.PLACED:
-            dummy.updatePos(placement);
+            dummy.setPos(placement.tileX, placement.tileY);
             break;
         case Placement.ERR_INVALID_POS:
         case Placement.ERR_NO_MANA:
@@ -100,7 +97,7 @@ export default class Game extends Phaser.Scene {
         const render = new EntityRender(this, type);
         this.entities.set(key, render);
         this.field.root.add(render.root);
-        render.updatePos(pos);
+        render.setPos(pos.tileX, pos.tileY);
     }
 
     removeEntity(key:string) {

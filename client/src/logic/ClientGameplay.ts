@@ -104,6 +104,7 @@ export default class ClientGameplay {
                 this.flipIfNeeded(pos);
                 render.interpolator.add(time, pos.tileX, pos.tileY);
             }
+            render.hitpointsInterpolator.add(time, entity.hp);
         }
     }
 
