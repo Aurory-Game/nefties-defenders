@@ -44,4 +44,8 @@ export default class CrRoom extends Room<CrRoomSync> {
         this.broadcastPatch();
     }
 
+    onDispose() {
+        this.timestep.stop();
+    }
+
 }

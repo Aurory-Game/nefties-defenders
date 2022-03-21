@@ -45,8 +45,10 @@ export default class ServerLogicEngine {
     }
 
     removePlayer(client:Client) {
+        // TODO handle win by default.
         this.players.delete(client.sessionId);
         this.sync.players.delete(client.sessionId);
+        if (this.players.size == 0) this.room.disconnect();
     }
 
     start() {
