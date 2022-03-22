@@ -2,7 +2,7 @@ import { FIELD_TILES_HEIGHT, FIELD_TILES_HEIGHT_MID, FIELD_TILES_WIDTH_MID, LEFT
     TICKS_1S, TIMESTEP_S } from '../../../shared/constants';
 import { EntityLogicData } from './ServerLogicEngine';
 import * as SAT from 'sat';
-import { EntityState, VIEW_RANGE, canTarget } from '../../../shared/entities';
+import { EntityState, EntityType, VIEW_RANGE, canTarget } from '../../../shared/entities';
 import Field from './Field';
 import { Point } from 'navmesh';
 
@@ -120,8 +120,8 @@ export default class EntityManager {
         } else { // Walk to the opponent.
             let hasSmallTower = false;
             for (const e of this.entities)
-                if (e.geom instanceof SAT.Polygon
-                && e.owner != entity.owner && e.geom.pos.x > FIELD_TILES_WIDTH_MID + 1) {
+                if (e.sync.type == EntityType.SmallTower && e.owner != entity.owner
+                    && (e.geom.pos.x < FIELD_TILES_WIDTH_MID == pos.x < FIELD_TILES_WIDTH_MID)) {
                     hasSmallTower = true;
                     break;
                 }
