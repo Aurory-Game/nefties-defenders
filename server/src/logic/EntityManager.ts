@@ -176,6 +176,13 @@ function collideEntities(entities:EntityLogicData[]) {
                         // Coefficients.
                         const c1 = e1.geom.r / sumR;
                         const c2 = e2.geom.r / sumR;
+                        // If the entities are on the same x axis, rotate pushout vector slightly towards center.
+                        // Makes the entities spread out instead of constantly push through each other.
+                        if (Math.abs(response.overlapN.x) < 0.001) {
+                            let angle = e1.geom.pos.x < FIELD_TILES_WIDTH_MID ? 0.1 : -0.1;
+                            if (response.overlapN.y < 0) angle *= -1;
+                            response.overlapN.rotate(angle);
+                        }
                         // Push-out distances.
                         // Don't push away more than half of speed, so pass-through is possible, otherwise
                         // two big entities could get stuck on the bridge (if they don't target each other).
