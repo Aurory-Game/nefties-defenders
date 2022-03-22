@@ -6,7 +6,7 @@ import CardHand from './CardHand';
 import { EntitySync } from 'schema/EntitySync';
 import { PlayerSync } from 'schema/PlayerSync';
 import { MapSchema } from '@colyseus/schema';
-import { InfluenceRange, getInfluence, withinInfluence } from 'shared/entities';
+import { ENTITIES, EntityType, InfluenceRange, getInfluence, withinInfluence } from 'shared/entities';
 
 export default class ClientGameplay {
 
@@ -14,6 +14,7 @@ export default class ClientGameplay {
     public ourPlayer:PlayerSync;
     public ourKey:string;
 
+    private entities:MapSchema<EntitySync>;
     private influences:Map<string, InfluenceRange> = new Map();
 
     constructor(private room:Room, private game:Game) {
@@ -52,7 +53,8 @@ export default class ClientGameplay {
         return isDone || placement.type == Placement.BELOW_LINE;
     }
 
-    start() {
+    start(entities:MapSchema<EntitySync>) {
+        this.entities = entities;
         this.game.input.enabled = true;
     }
 
@@ -61,17 +63,20 @@ export default class ClientGameplay {
     }
 
     getFieldPlacement(p:{x:number, y:number}):FieldPlacement {
-        const f = this.ourPlayer.secret.isFlipped ? Math.ceil : Math.floor;
+        const { isFlipped } = this.ourPlayer.secret;
+        const f = isFlipped ? Math.ceil : Math.floor;
+        const pTile = { tileX: p.x / FIELD_TILE_SIZE, tileY: p.y / FIELD_TILE_SIZE };
         const result = {
             type: Placement.VALID,
-            tileX: f(p.x / FIELD_TILE_SIZE),
-            tileY: f(p.y / FIELD_TILE_SIZE),
+            tileX: f(pTile.tileX),
+            tileY: f(pTile.tileY),
         };
         if (p.y > FIELD_TILES_HEIGHT * FIELD_TILE_SIZE) {
             result.type = Placement.BELOW_LINE;
             return result;
         }
         this.flipIfNeeded(result); // Flip to logical coordinates.
+        this.flipIfNeeded(pTile);
         // Clamp on sides.
         if (result.tileY < 0) result.tileY = 0;
         else if (result.tileY >= FIELD_TILES_HEIGHT) result.tileY = FIELD_TILES_HEIGHT - 1;
@@ -89,11 +94,29 @@ export default class ClientGameplay {
                 result.tileY++;
         }
 
+        // Clamp around buildings.
+        for (const e of this.entities.values()) {
+            const { size } = ENTITIES[e.type as EntityType];
+            if (size.t == 'square') {
+                const x = Math.round(e.tileX - size.size / 2);
+                const y = Math.round(e.tileY - size.size / 2);
+                if (result.tileX >= x && result.tileX < x + size.size
+                        && result.tileY >= y && result.tileY < y + size.size) {
+                    if (Math.abs(e.tileX - pTile.tileX) > Math.abs(e.tileY - pTile.tileY)) {
+                        if (pTile.tileX > e.tileX) result.tileX = x + size.size;
+                        else result.tileX = x - 1;
+                    } else {
+                        if (pTile.tileY > e.tileY) result.tileY = y + size.size;
+                        else result.tileY = y - 1;
+                    }
+                }
+            }
+
+        }
+
         for (const inf of this.influences.values()) {
             if (withinInfluence(inf, result.tileX, result.tileY)) result.type = Placement.INVALID;
         }
-
-        // TODO Clamp around our towers.
         return result;
     }
 
@@ -121,8 +144,8 @@ export default class ClientGameplay {
         for (const inf of this.influences.values()) this.flipInfluenceIfNeeded(inf);
     }
 
-    updateEntities(time:number, entities:MapSchema<EntitySync>) {
-        for (const [key, entity] of entities) {
+    updateEntities(time:number) {
+        for (const [key, entity] of this.entities) {
             const render = this.game.entities.get(key);
             if (render.interpolator) {
                 const pos = { tileX: entity.tileX, tileY: entity.tileY };

@@ -36,7 +36,7 @@ class RoomManager {
                     // If for any reason we didn't start yet, do it now.
                     this.timestep.startNowAtTick(this.sync.tick);
                 }
-                this.gameplay.start();
+                this.gameplay.start(this.sync.entities);
             } else if (state == GameState.DONE) {
                 this.gameplay.end();
             }
@@ -100,7 +100,7 @@ class RoomManager {
             }
         } else if (sync.state == GameState.PLAYING) {
             const time = sync.tick * TIMESTEP;
-            this.gameplay.updateEntities(time, sync.entities);
+            this.gameplay.updateEntities(time);
         }
         this.gameplay.hand.onAfterSchemaSync();
     }
