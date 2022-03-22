@@ -1,7 +1,8 @@
 import { Client, Room } from 'colyseus.js';
 import Game from 'scenes/Game';
 import { CrRoomSync } from 'schema/CrRoomSync';
-import { MANA_MAX, MANA_REGEN_TICKS, ROOM_NAME, TICKS_HALF_S, TIMESTEP, TIMESTEP_S } from 'shared/constants';
+import { MANA_MAX, MANA_REGEN_TICKS, ROOM_NAME, ROUND_TIME_TICKS, TICKS_HALF_S, TIMESTEP,
+    TIMESTEP_S } from 'shared/constants';
 import { MENU_KEY } from 'scenes/Menu';
 import { GameState } from 'shared/GameState';
 import FixedTimestep from 'shared/FixedTimestep';
@@ -20,6 +21,8 @@ class RoomManager {
     private timestep:FixedTimestep;
     private initTimeSync:InitTimeSync;
     private gameplay:ClientGameplay;
+    private roundResult:boolean | null;
+    private roundEndTick:number;
 
     constructor(game:Game, room:Room<CrRoomSync>) {
         this.game = game;
@@ -29,6 +32,8 @@ class RoomManager {
         this.room.onStateChange(sync => this.onSyncChange(sync));
         this.room.onMessage(MessageKind.CARD_HAND, msg => this.gameplay.hand.onCardHand(msg));
         this.room.onMessage(MessageKind.PLAY_CARD_RESULT, msg => this.gameplay.hand.onPlayCardResult(msg));
+        this.room.onMessage(MessageKind.GAME_OVER,
+            msg => this.roundResult = msg.winner ? (this.gameplay.ourKey == msg.winner) : null);
         this.sync.listen('state', state => {
             this.updateText();
             if (state == GameState.PLAYING) {
@@ -37,8 +42,12 @@ class RoomManager {
                     this.timestep.startNowAtTick(this.sync.tick);
                 }
                 this.gameplay.start(this.sync.entities);
+                this.roundEndTick = this.sync.tick + ROUND_TIME_TICKS;
             } else if (state == GameState.DONE) {
                 this.gameplay.end();
+                this.timestep.stop();
+                this.updateText();
+                this.game.gameOver(this.roundResult);
             }
         });
         this.sync.players.onAdd = (player, key) => {
@@ -98,9 +107,11 @@ class RoomManager {
                     this.timestep.start(zeroTime, startTime, sync.nextStateAt - 1);
                 }
             }
-        } else if (sync.state == GameState.PLAYING) {
+        } else if (sync.state == GameState.PLAYING || sync.state == GameState.DONE) {
             const time = sync.tick * TIMESTEP;
             this.gameplay.updateEntities(time);
+            if (sync.state == GameState.PLAYING)
+                this.game.updateTimeLeft(this.getSecondsUntil(this.roundEndTick));
         }
         this.gameplay.hand.onAfterSchemaSync();
     }

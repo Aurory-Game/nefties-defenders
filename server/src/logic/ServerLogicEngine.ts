@@ -1,11 +1,11 @@
 import { Client } from 'colyseus';
 import Vector2 from 'navmesh/dist/math/vector-2';
 import { CARDS, CardId } from '../../../shared/cards';
-import { FIELD_TILES_HEIGHT, FIELD_TILES_WIDTH, MANA_MAX, MANA_REGEN_TICKS, TICKS_1S,
-    TICKS_3S, TOWERS, isWater} from '../../../shared/constants';
+import { FIELD_TILES_HEIGHT, FIELD_TILES_WIDTH, MANA_MAX, MANA_REGEN_TICKS, ROUND_TIME_TICKS,
+    TICKS_1S, TICKS_3S, TOWERS, isWater} from '../../../shared/constants';
 import { ENTITIES, EntityData, EntityType, getInfluence, withinInfluence } from '../../../shared/entities';
 import { GameState } from '../../../shared/GameState';
-import { MessageKind, MessageType, sendMessage } from '../../../shared/messages';
+import { MessageKind, MessageType, broadcastMessage, sendMessage } from '../../../shared/messages';
 import CrRoom from '../rooms/CrRoom';
 import { CrRoomSync, EntitySync, PlayerSync } from '../schema/CrRoomSync';
 import EntityManager from './EntityManager';
@@ -22,6 +22,7 @@ export default class ServerLogicEngine {
     private field:Field = new Field();
     private entityManager:EntityManager = new EntityManager(this.field);
     private ids:number = 1;
+    private gameOverTick!:number;
 
     constructor(room:CrRoom) {
         this.room = room;
@@ -45,7 +46,6 @@ export default class ServerLogicEngine {
     }
 
     removePlayer(client:Client) {
-        // TODO handle win by default.
         this.players.delete(client.sessionId);
         this.sync.players.delete(client.sessionId);
         if (this.players.size == 0) this.room.disconnect();
@@ -78,10 +78,33 @@ export default class ServerLogicEngine {
         case GameState.STARTING:
             if (this.sync.tick >= this.sync.nextStateAt) {
                 this.sync.state = GameState.PLAYING;
+                this.gameOverTick = this.sync.tick + ROUND_TIME_TICKS;
             }
             break;
         case GameState.PLAYING:{
-            this.gameLogic();
+            if (this.sync.tick < this.gameOverTick) {
+                this.gameLogic();
+            } else {
+                // Winner has more towers or towers with more health.
+                const ent = [...this.entities.values()];
+                const players = [...this.players.values()].map(p => {
+                    const towers = ent.filter(e => e.geom instanceof SAT.Polygon && e.owner == p);
+                    return {
+                        p,
+                        towerCount: towers.length,
+                        lowestHp: towers.reduce((p, c) => Math.min(p, c.sync.hp), Number.POSITIVE_INFINITY)
+                    };
+                });
+                players.sort((a, b) => {
+                    if (a.towerCount == b.towerCount) return b.lowestHp - a.lowestHp;
+                    else return b.towerCount - a.towerCount;
+                });
+                let winner = players.shift();
+                if (winner && players.length > 0
+                        && players[0].towerCount == winner.towerCount && players[0].lowestHp == winner.lowestHp)
+                    winner = undefined;
+                this.gameOver(winner?.p);
+            }
             break;
         }
         case GameState.DONE:
@@ -109,8 +132,18 @@ export default class ServerLogicEngine {
                 const i = this.entityManager.entities.indexOf(entity);
                 if (i >= 0) this.entityManager.entities.splice(i, 1);
                 this.sync.entities.delete(key);
+                if (entity.sync.type == EntityType.BigTower) { // This player lost.
+                    const winner = [...this.players.values()].filter(p => p != entity.owner)[0];
+                    this.gameOver(winner);
+                }
             }
         }
+    }
+
+    gameOver(winner?:PlayerData) {
+        this.sync.state = GameState.DONE;
+        this.sync.nextStateAt = this.sync.tick + TICKS_3S;
+        broadcastMessage(this.room, MessageKind.GAME_OVER, { winner: winner?.key });
     }
 
     onPlayCard(client:Client, msg:MessageType[MessageKind.PLAY_CARD] | undefined) {

@@ -11,6 +11,8 @@ export const TICKS_3S:number = Math.round(3000 / TIMESTEP);
 export const TICKS_HALF_S:number = Math.round(500 / TIMESTEP);
 /** One second worth of ticks. */
 export const TICKS_1S:number = Math.round(1000 / TIMESTEP);
+/** Maximum time a round can take.  */
+export const ROUND_TIME_TICKS:number = Math.round((2 * 60_000) / TIMESTEP);
 
 export const MANA_START:number = 5;
 export const MANA_MAX:number = 10;

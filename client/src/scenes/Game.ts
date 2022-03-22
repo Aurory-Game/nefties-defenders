@@ -7,6 +7,7 @@ import { CARDS, CardId } from 'shared/cards';
 import EntityRender from 'render/EntityRender';
 import { FieldPlacement, Placement } from 'logic/ClientGameplay';
 import { EntityState, EntityType } from 'shared/entities';
+import { MENU_KEY } from './Menu';
 
 export default class Game extends Phaser.Scene {
 
@@ -15,6 +16,7 @@ export default class Game extends Phaser.Scene {
     public field:FieldRender;
     public entities:Map<string, EntityRender> = new Map();
     private infoTx:Phaser.GameObjects.Text;
+    private timeLeftTx:Phaser.GameObjects.Text;
     private dummies:Map<number, EntityRender> = new Map();
 
     constructor() {
@@ -26,6 +28,11 @@ export default class Game extends Phaser.Scene {
             .setFontSize(18)
             .setOrigin(0.5)
             .setDepth(5);
+        this.timeLeftTx = this.add.text(this.scale.width - 10, 10, '')
+            .setFontSize(25)
+            .setOrigin(1, 0)
+            .setDepth(5)
+            .setAlign('center');
         startMatch(this);
         this.manaBar = new ManaBar(this);
         this.handRender = new CardHandRender(this);
@@ -57,6 +64,10 @@ export default class Game extends Phaser.Scene {
         }
     }
 
+    updateTimeLeft(timeLeft:number) {
+        this.timeLeftTx.setText(`Time Left\n${timeLeft}s`);
+    }
+
     updateDummy(id:number, type:CardId, placement:FieldPlacement) {
         if (!this.dummies.has(id)) {
             const dummy = new EntityRender(this, CARDS[type].entityType, true);
@@ -80,10 +91,10 @@ export default class Game extends Phaser.Scene {
         }
         switch (placement.type) {
         case Placement.ERR_INVALID_POS:
-            this.showError('Invalid Placement');
+            this.showMsg('Invalid Placement');
             break;
         case Placement.ERR_NO_MANA:
-            this.showError('Not Enough Mana');
+            this.showMsg('Not Enough Mana');
             break;
         }
 
@@ -114,10 +125,10 @@ export default class Game extends Phaser.Scene {
         this.entities.get(key)?.setState(state);
     }
 
-    showError(tx:string) {
+    showMsg(tx:string, isError:boolean = true) {
         const text = this.add.text(this.scale.width / 2, this.scale.height * 0.33, tx, {
             fontSize: '28px',
-            color: '#cc3333',
+            color: isError ? '#cc3333' : '#33cc33',
             fontStyle: 'bold',
         }).setOrigin(0.5)
             .setDepth(6)
@@ -144,6 +155,12 @@ export default class Game extends Phaser.Scene {
                 }
             ]
         });
+    }
+
+    gameOver(result:boolean | null) {
+        const message = result == null ? 'A Tie!' : (result ? 'You Won!' : 'You lost!');
+        this.showMsg(message, false);
+        this.time.delayedCall(3000, () => this.scene.start(MENU_KEY, { message }));
     }
 
 }

@@ -4,6 +4,7 @@ export enum MessageKind {
     CARD_HAND,
     PLAY_CARD,
     PLAY_CARD_RESULT,
+    GAME_OVER,
 }
 
 export type MessageType = {
@@ -25,12 +26,23 @@ export type MessageType = {
         /** If card was played, id of the next card, `null` otherwise. */
         nextCard:CardId | null,
     },
+    [MessageKind.GAME_OVER]:{
+        winner?:string
+    },
 }
 
 type Sendable = {
     send:(type:number, msg:unknown) => void;
 }
 
+type Broadcastable = {
+    broadcast(type:number, message:unknown):unknown;
+}
+
 export function sendMessage<T extends MessageKind>(where:Sendable, kind:T, msg:MessageType[T]):void {
     where.send(kind, msg);
+}
+
+export function broadcastMessage<T extends MessageKind>(where:Broadcastable, kind:T, msg:MessageType[T]):void {
+    where.broadcast(kind, msg);
 }
