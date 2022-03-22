@@ -45,6 +45,7 @@ class RoomManager {
             if (key == room.sessionId) {
                 this.ourPlayer = player;
                 this.gameplay.ourPlayer = player;
+                this.gameplay.ourKey = key;
             }
         };
         this.sync.entities.onAdd = (entity, key) => {

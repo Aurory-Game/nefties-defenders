@@ -1,9 +1,9 @@
 import { Client } from 'colyseus';
 import Vector2 from 'navmesh/dist/math/vector-2';
-import { CARDS, CardData, CardId } from '../../../shared/cards';
+import { CARDS, CardId } from '../../../shared/cards';
 import { FIELD_TILES_HEIGHT, FIELD_TILES_WIDTH, MANA_MAX, MANA_REGEN_TICKS, TICKS_1S,
     TICKS_3S, TOWERS, isWater} from '../../../shared/constants';
-import { ENTITIES, EntityData, EntityType } from '../../../shared/entities';
+import { ENTITIES, EntityData, EntityType, getInfluence, withinInfluence } from '../../../shared/entities';
 import { GameState } from '../../../shared/GameState';
 import { MessageKind, MessageType, sendMessage } from '../../../shared/messages';
 import CrRoom from '../rooms/CrRoom';
@@ -128,7 +128,7 @@ export default class ServerLogicEngine {
             fail();
         } else {
             const cardData = CARDS[card as CardId];
-            if (!this.canSpawn(cardData, player, tileX, tileY)) {
+            if (!this.canSpawn(player, tileX, tileY)) {
                 fail();
             } else if (player.sync.secret.mana < cardData.manaCost) {
                 // TODO implement pre-placement (if not enough mana, but close, delay the card play a bit).
@@ -145,8 +145,10 @@ export default class ServerLogicEngine {
         }
     }
 
-    canSpawn(cardData:CardData, player:PlayerData, tileX:number, tileY:number):boolean {
-        // TODO tower influence.
+    canSpawn(player:PlayerData, tileX:number, tileY:number):boolean {
+        for (const e of this.entities.values()) if (e.owner != player) {
+            if (withinInfluence(getInfluence(e.sync.type, e.sync.tileX, e.sync.tileY), tileX, tileY)) return false;
+        }
         return tileX >= 0 && tileX < FIELD_TILES_WIDTH
             && tileY >= 0 && tileY < FIELD_TILES_HEIGHT
             && !isWater(tileX, tileY);

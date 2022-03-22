@@ -70,6 +70,7 @@ export default class Game extends Phaser.Scene {
         switch (placement.type) {
         case Placement.VALID:
         case Placement.PLACED:
+        case Placement.INVALID:
             dummy.setPos(placement.tileX, placement.tileY);
             break;
         case Placement.ERR_INVALID_POS:

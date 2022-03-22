@@ -6,11 +6,15 @@ import CardHand from './CardHand';
 import { EntitySync } from 'schema/EntitySync';
 import { PlayerSync } from 'schema/PlayerSync';
 import { MapSchema } from '@colyseus/schema';
+import { InfluenceRange, getInfluence, withinInfluence } from 'shared/entities';
 
 export default class ClientGameplay {
 
     hand:CardHand;
     public ourPlayer:PlayerSync;
+    public ourKey:string;
+
+    private influences:Map<string, InfluenceRange> = new Map();
 
     constructor(private room:Room, private game:Game) {
         this.game.input.enabled = false;
@@ -23,7 +27,7 @@ export default class ClientGameplay {
         const p = this.game.field.background.getLocalPoint(x, y);
         const placement = this.getFieldPlacement(p);
         const id = this.hand.getNextId();
-        // TODO display invalid placement shape.
+        this.game.field.setInfluenceVisible(!isDone);
         if (isDone) {
             if (placement.type != Placement.VALID) {
                 if (placement.type != Placement.BELOW_LINE) placement.type = Placement.ERR_INVALID_POS;
@@ -63,7 +67,10 @@ export default class ClientGameplay {
             tileX: f(p.x / FIELD_TILE_SIZE),
             tileY: f(p.y / FIELD_TILE_SIZE),
         };
-        if (p.y > FIELD_TILES_HEIGHT * FIELD_TILE_SIZE) result.type = Placement.BELOW_LINE;
+        if (p.y > FIELD_TILES_HEIGHT * FIELD_TILE_SIZE) {
+            result.type = Placement.BELOW_LINE;
+            return result;
+        }
         this.flipIfNeeded(result); // Flip to logical coordinates.
         // Clamp on sides.
         if (result.tileY < 0) result.tileY = 0;
@@ -82,7 +89,11 @@ export default class ClientGameplay {
                 result.tileY++;
         }
 
-        // TODO check against tower instances. Clamp around ours. Handle opponent's influence field.
+        for (const inf of this.influences.values()) {
+            if (withinInfluence(inf, result.tileX, result.tileY)) result.type = Placement.INVALID;
+        }
+
+        // TODO Clamp around our towers.
         return result;
     }
 
@@ -90,10 +101,24 @@ export default class ClientGameplay {
         const pos = { tileX: entity.tileX, tileY: entity.tileY };
         this.flipIfNeeded(pos);
         this.game.addEntity(key, pos, entity.type);
+        if (entity.owner != this.ourKey) {
+            const inf = getInfluence(entity.type, entity.tileX, entity.tileY);
+            if (inf) {
+                this.influences.set(key, inf);
+                this.redrawInfluence();
+            }
+        }
     }
 
     removeEntity(key:string) {
         this.game.removeEntity(key);
+        if (this.influences.delete(key)) this.redrawInfluence();
+    }
+
+    redrawInfluence() {
+        for (const inf of this.influences.values()) this.flipInfluenceIfNeeded(inf);
+        this.game.field.redrawInfluence(this.influences.values());
+        for (const inf of this.influences.values()) this.flipInfluenceIfNeeded(inf);
     }
 
     updateEntities(time:number, entities:MapSchema<EntitySync>) {
@@ -112,6 +137,14 @@ export default class ClientGameplay {
         if (this.ourPlayer.secret.isFlipped) {
             o.tileX = FIELD_TILES_WIDTH - o.tileX;
             o.tileY = FIELD_TILES_HEIGHT - o.tileY;
+        }
+    }
+
+    flipInfluenceIfNeeded(inf:InfluenceRange) {
+        if (this.ourPlayer.secret.isFlipped) {
+            [inf.x1, inf.x2, inf.y1, inf.y2] = [
+                FIELD_TILES_WIDTH - inf.x2, FIELD_TILES_WIDTH - inf.x1,
+                FIELD_TILES_HEIGHT - inf.y2, FIELD_TILES_HEIGHT - inf.y1];
         }
     }
 

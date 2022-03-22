@@ -1,3 +1,5 @@
+import { FIELD_TILES_HEIGHT, FIELD_TILES_WIDTH } from './constants';
+
 export enum EntityType {
     BigTower = 1,
     SmallTower,
@@ -69,6 +71,32 @@ export const ENTITIES:Record<EntityType, EntityData> = {
         size: { t: 'circle', size: 0.4 }
     },
 };
+
+const INFLUENCE:Partial<Record<EntityType, {w:number, h:number}>> = {
+    [EntityType.BigTower]: { w: 9, h: 8 },
+    [EntityType.SmallTower]: { w: 5, h: 11 },
+};
+
+export function getInfluence(type:EntityType, x:number, y:number):InfluenceRange {
+    const inf = INFLUENCE[type];
+    if (inf) {
+        return {
+            x1: Math.max(0, Math.floor(x) - inf.w),
+            x2: Math.min(FIELD_TILES_WIDTH, Math.ceil(x) + inf.w),
+            y1: Math.max(0, Math.floor(y) - inf.h),
+            y2: Math.min(FIELD_TILES_HEIGHT, Math.ceil(y) + inf.h)
+        };
+    } else return null;
+}
+
+export function withinInfluence(inf:InfluenceRange, tileX:number, tileY:number):boolean {
+    // Put it in the middle of the tile, as the influence range is inclusive.
+    tileX += 0.5;
+    tileY += 0.5;
+    return inf != null && tileX > inf.x1 && tileX < inf.x2 && tileY > inf.y1 && tileY < inf.y2;
+}
+
+export type InfluenceRange = {x1:number, y1:number, x2:number, y2:number} | null;
 
 /** The minimum range needed to consider a unit Ranged. */
 const RANGED_RANGE = 4;
