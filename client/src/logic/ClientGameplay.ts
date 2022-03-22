@@ -123,7 +123,7 @@ export default class ClientGameplay {
     addEntity(entity:EntitySync, key:string) {
         const pos = { tileX: entity.tileX, tileY: entity.tileY };
         this.flipIfNeeded(pos);
-        this.game.addEntity(key, pos, entity.type);
+        this.game.addEntity(key, pos, entity.type, entity.owner == this.ourKey);
         if (entity.owner != this.ourKey) {
             const inf = getInfluence(entity.type, entity.tileX, entity.tileY);
             if (inf) {

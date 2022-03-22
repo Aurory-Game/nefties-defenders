@@ -12,15 +12,24 @@ export default class EntityRender {
     hitpointsInterpolator:Interpolator;
     readonly maxHitpoints:number;
 
-    constructor(scene:Phaser.Scene, type:EntityType) {
+    constructor(scene:Phaser.Scene, type:EntityType, isOurs:boolean) {
         this.root = scene.add.container(0, 0);
         const data = ENTITIES[type];
-        const img = scene.add.rectangle(0, 10, 40, 60, 0xcc3333).setOrigin(0.5, 1);
-        const tx = scene.add.text(0, 5, EntityType[type]).setOrigin(0.5, 0);
+        const size = data.size.size * FIELD_TILE_SIZE;
+        const color = isOurs ? 0x3333cc : 0xcc3333;
+        const color2 = isOurs ? 0x0000ff : 0xff0000;
+        if (data.size.t == 'square') {
+            this.root.add(scene.add.rectangle(0, 0, size, size, color));
+        } else {
+            const tall = scene.add.rectangle(0, size * 0.5, size * 2, size * 3, color).setOrigin(0.5, 1);
+            const circ = scene.add.circle(0, 0, size / 2, color2);
+            this.root.add([tall, circ]);
+        }
+        const tx = scene.add.text(0, 5, EntityType[type]).setOrigin(0.5, 0).setAlpha(0.8);
         tx.setScale(70 / tx.width);
         this.stateTx = scene.add.text(0, -10, EntityState[EntityState.SPAWNING]).setOrigin(0.5, 0);
         this.hitpointsTx = scene.add.text(0, -25, '').setOrigin(0.5, 0);
-        this.root.add([img, tx, this.stateTx, this.hitpointsTx]);
+        this.root.add([tx, this.stateTx, this.hitpointsTx]);
         if (data.walkSpeed > 0) this.interpolator = new Interpolator(TIMESTEP * 2, TIMESTEP, 2);
         else this.interpolator = null;
         this.hitpointsInterpolator = new Interpolator(TIMESTEP * 2, TIMESTEP, 2);

@@ -59,7 +59,7 @@ export default class Game extends Phaser.Scene {
 
     updateDummy(id:number, type:CardId, placement:FieldPlacement) {
         if (!this.dummies.has(id)) {
-            const dummy = new EntityRender(this, CARDS[type].entityType);
+            const dummy = new EntityRender(this, CARDS[type].entityType, true);
             dummy.addMarker();
             this.dummies.set(id, dummy);
             this.field.root.add(dummy.root);
@@ -94,8 +94,8 @@ export default class Game extends Phaser.Scene {
         this.dummies.delete(id);
     }
 
-    addEntity(key:string, pos:{tileX:number, tileY:number}, type:EntityType) {
-        const render = new EntityRender(this, type);
+    addEntity(key:string, pos:{tileX:number, tileY:number}, type:EntityType, isOurs:boolean) {
+        const render = new EntityRender(this, type, isOurs);
         this.entities.set(key, render);
         this.field.root.add(render.root);
         render.setPos(pos.tileX, pos.tileY);
