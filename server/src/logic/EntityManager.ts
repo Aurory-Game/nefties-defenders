@@ -1,6 +1,5 @@
 import { FIELD_TILES_HEIGHT, FIELD_TILES_HEIGHT_MID, FIELD_TILES_WIDTH_MID, LEFT_LANE, RIGHT_LANE,
-    TICKS_1S,
-    TIMESTEP_S } from '../../../shared/constants';
+    TICKS_1S, TIMESTEP_S } from '../../../shared/constants';
 import { EntityLogicData } from './ServerLogicEngine';
 import * as SAT from 'sat';
 import { EntityState, VIEW_RANGE, canTarget } from '../../../shared/entities';
@@ -110,32 +109,29 @@ export default class EntityManager {
         entity.sync.state = EntityState.MOVING;
         const { isFlipped } = entity.owner.sync.secret;
         const { pos } = entity.geom;
-        if (entity.data.isFlying) { // Fly directly 'up'.
-            tempVec.x = pos.x;
-            tempVec.y = isFlipped ? FIELD_TILES_HEIGHT - 7 : 7;
-        } else {
-            // Walk to the bridge first. Makes sure the pathfinding won't try to go around the other side.
-            tempVec.x = pos.x < FIELD_TILES_WIDTH_MID ? LEFT_LANE : RIGHT_LANE;
-            const isOnHomeSide = isFlipped ? pos.y < FIELD_TILES_HEIGHT_MID : pos.y > FIELD_TILES_HEIGHT_MID;
-            if (isOnHomeSide) { // Walk towards the bridge.
-                tempVec.y = FIELD_TILES_HEIGHT_MID + (isFlipped ? 1 : -1);
-            } else { // Walk to the opponent.
-                let hasSmallTower = false;
-                for (const e of this.entities)
-                    if (e.geom instanceof SAT.Polygon
-                    && e.owner != entity.owner && e.geom.pos.x > FIELD_TILES_WIDTH_MID + 1) {
-                        hasSmallTower = true;
-                        break;
-                    }
-                const yPos = hasSmallTower ? 7 : 3;
-                tempVec.y = isFlipped ? FIELD_TILES_HEIGHT - yPos : yPos;
-                if (!hasSmallTower && (isFlipped ? pos.y > FIELD_TILES_HEIGHT - 4 : pos.y < 4)) {
-                    // Walk towards big tower.
-                    tempVec.x = pos.x < FIELD_TILES_WIDTH_MID ? LEFT_LANE + 3.5 : RIGHT_LANE - 3.5;
+
+        // Walk to the correct lane.
+        tempVec.x = pos.x < FIELD_TILES_WIDTH_MID ? LEFT_LANE : RIGHT_LANE;
+        // Walk to the bridge first if needed. Makes sure the pathfinding won't try to go around the other side.
+        const bridgeFirst = !entity.data.isFlying
+            && (isFlipped ? pos.y < FIELD_TILES_HEIGHT_MID : pos.y > FIELD_TILES_HEIGHT_MID);
+        if (bridgeFirst) { // Walk towards the bridge.
+            tempVec.y = FIELD_TILES_HEIGHT_MID + (isFlipped ? 1 : -1);
+        } else { // Walk to the opponent.
+            let hasSmallTower = false;
+            for (const e of this.entities)
+                if (e.geom instanceof SAT.Polygon
+                && e.owner != entity.owner && e.geom.pos.x > FIELD_TILES_WIDTH_MID + 1) {
+                    hasSmallTower = true;
+                    break;
                 }
+            const yPos = hasSmallTower ? 7 : 3;
+            tempVec.y = isFlipped ? FIELD_TILES_HEIGHT - yPos : yPos;
+            if (!hasSmallTower && (isFlipped ? pos.y > FIELD_TILES_HEIGHT - 4 : pos.y < 4)) {
+                // Walk towards big tower.
+                tempVec.x = pos.x < FIELD_TILES_WIDTH_MID ? LEFT_LANE + 3.5 : RIGHT_LANE - 3.5;
             }
         }
-
         this.setPath(entity, tempVec);
     }
 
