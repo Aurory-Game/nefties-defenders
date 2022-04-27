@@ -31,9 +31,10 @@ export default class ClientGameplay {
         this.game.field.setInfluenceVisible(!isDone);
         if (isDone) {
             if (placement.type != Placement.VALID) {
-                if (placement.type != Placement.BELOW_LINE) placement.type = Placement.ERR_INVALID_POS;
+                if (placement.type == Placement.BELOW_LINE) placement.type = Placement.DONE_NOT_PLACED;
+                else placement.type = Placement.DONE_INVALID_POS;
             } else if (this.ourPlayer.secret.mana < this.hand.predictMana(index)) {
-                placement.type = Placement.ERR_NO_MANA;
+                placement.type = Placement.DONE_NO_MANA;
             } else {
                 const cardReq = this.hand.playCard(index);
                 sendMessage(this.room, MessageKind.PLAY_CARD, {
@@ -42,7 +43,7 @@ export default class ClientGameplay {
                     tileX: placement.tileX,
                     tileY: placement.tileY
                 });
-                placement.type = Placement.PLACED;
+                placement.type = Placement.DONE_PLACED;
             }
         }
         // Assume placement in the middle of the tile.
@@ -177,9 +178,10 @@ export const enum Placement {
     VALID,
     INVALID,
     BELOW_LINE,
-    PLACED,
-    ERR_NO_MANA,
-    ERR_INVALID_POS,
+    DONE_NOT_PLACED,
+    DONE_PLACED,
+    DONE_NO_MANA,
+    DONE_INVALID_POS,
 }
 
 export type FieldPlacement = {

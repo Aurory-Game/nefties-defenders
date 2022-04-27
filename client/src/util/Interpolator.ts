@@ -1,16 +1,20 @@
-const temp:InterpolatedValue = { time: 0, x: 0, y: 0 };
+const temp:InterpolatedResult = { time: 0, x: 0, y: 0, angle: null };
 
 function setFrom(other:InterpolatedValue) {
     temp.time = other.time;
     temp.x = other.x;
     temp.y = other.y;
+    temp.angle = null;
     return temp;
 }
 
 function interpolate(a:InterpolatedValue, b:InterpolatedValue, alpha:number) {
     temp.time = a.time + (b.time - a.time) * alpha;
-    temp.x = a.x + (b.x - a.x) * alpha;
-    temp.y = a.y + (b.y - a.y) * alpha;
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    temp.x = a.x + dx * alpha;
+    temp.y = a.y + dy * alpha;
+    temp.angle = Math.atan2(dy, dx);
 
     return temp;
 }
@@ -53,7 +57,7 @@ export default class Interpolator {
     }
 
     /** @returns Can be null. */
-    getAtTime(time:number):InterpolatedValue {
+    getAtTime(time:number):InterpolatedResult {
         if (this.count < 1) return null; // Not enough data, wait.
         time -= this.interpolationWindow;
         this.clearOlderThan(time);
@@ -98,8 +102,12 @@ export default class Interpolator {
     }
 }
 
- type InterpolatedValue = {
+type InterpolatedValue = {
     time:number;
     x:number;
     y:number;
- }
+}
+
+type InterpolatedResult = InterpolatedValue & {
+    angle:number|null;
+}

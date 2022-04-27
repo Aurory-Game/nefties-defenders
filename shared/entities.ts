@@ -20,6 +20,7 @@ export type EntityData = {
     walkSpeed:number;
     isFlying:boolean;
     size:EntitySize;
+    skin:string;
 }
 
 type EntitySize = { t:'circle', size:number } | { t:'square', size:number };
@@ -32,7 +33,8 @@ export const ENTITIES:Record<EntityType, EntityData> = {
         hitSpeed: 4,
         walkSpeed: 0,
         isFlying: false,
-        size: { t: 'square', size: 4 }
+        size: { t: 'square', size: 4 },
+        skin: null,
     },
     [EntityType.SmallTower]: {
         hitpoints: 3000,
@@ -41,7 +43,8 @@ export const ENTITIES:Record<EntityType, EntityData> = {
         hitSpeed: 2,
         walkSpeed: 0,
         isFlying: false,
-        size: { t: 'square', size: 3 }
+        size: { t: 'square', size: 3 },
+        skin: null,
     },
     [EntityType.MeleeFighter]: {
         hitpoints: 1000,
@@ -50,7 +53,8 @@ export const ENTITIES:Record<EntityType, EntityData> = {
         hitSpeed: 1,
         walkSpeed: 2,
         isFlying: false,
-        size: { t: 'circle', size: 0.6 }
+        size: { t: 'circle', size: 0.6 },
+        skin: 'Dinobit',
     },
     [EntityType.RangedFighter]: {
         hitpoints: 750,
@@ -59,7 +63,8 @@ export const ENTITIES:Record<EntityType, EntityData> = {
         hitSpeed: 1.2,
         walkSpeed: 2.25,
         isFlying: false,
-        size: { t: 'circle', size: 0.4 }
+        size: { t: 'circle', size: 0.4 },
+        skin: 'Bitebit',
     },
     [EntityType.Flying]: {
         hitpoints: 600,
@@ -68,7 +73,8 @@ export const ENTITIES:Record<EntityType, EntityData> = {
         hitSpeed: 0.7,
         walkSpeed: 2.6,
         isFlying: true,
-        size: { t: 'circle', size: 0.4 }
+        size: { t: 'circle', size: 0.4 },
+        skin: null,
     },
 };
 

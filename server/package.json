@@ -1,12 +1,12 @@
 {
-    "name": "cr-prototype-server",
+    "name": "nefties-defenders-server",
     "author": "Peter Achberger",
     "license": "MIT",
     "private": true,
     "scripts": {
         "build": "tsc",
-        "start": "ts-node src/CrPrototypeServer.ts",
-        "start:prod": "node build/server/src/CrPrototypeServer.js",
+        "start": "ts-node src/NeftiesDefendersServer.ts",
+        "start:prod": "node build/server/src/NeftiesDefendersServer.js",
         "schema-codegen": "npx schema-codegen src/schema/CrRoomSync.ts --output ../client/schema --ts"
     },
     "version": "1.0.0",

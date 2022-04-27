@@ -16,7 +16,7 @@
                 "-r",
                 "ts-node/register"
             ],
-            "program": "${workspaceFolder}\\src\\CrPrototypeServer.ts"
+            "program": "${workspaceFolder}\\src\\NeftiesDefendersServer.ts"
         }
     ]
 }

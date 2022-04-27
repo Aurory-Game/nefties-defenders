@@ -77,23 +77,24 @@ export default class Game extends Phaser.Scene {
         }
         const dummy = this.dummies.get(id);
         dummy.root.setVisible(placement.type != Placement.BELOW_LINE);
-        if (placement.type == Placement.PLACED) dummy.marker.setVisible(false);
+        if (placement.type == Placement.DONE_PLACED) dummy.marker.setVisible(false);
         switch (placement.type) {
         case Placement.VALID:
-        case Placement.PLACED:
+        case Placement.DONE_PLACED:
         case Placement.INVALID:
             dummy.setPos(placement.tileX, placement.tileY);
             break;
-        case Placement.ERR_INVALID_POS:
-        case Placement.ERR_NO_MANA:
+        case Placement.DONE_INVALID_POS:
+        case Placement.DONE_NO_MANA:
+        case Placement.DONE_NOT_PLACED:
             this.removeDummy(id);
             break;
         }
         switch (placement.type) {
-        case Placement.ERR_INVALID_POS:
+        case Placement.DONE_INVALID_POS:
             this.showMsg('Invalid Placement');
             break;
-        case Placement.ERR_NO_MANA:
+        case Placement.DONE_NO_MANA:
             this.showMsg('Not Enough Mana');
             break;
         }
@@ -101,7 +102,7 @@ export default class Game extends Phaser.Scene {
     }
 
     removeDummy(id:number) {
-        this.dummies.get(id)?.destroy();
+        this.dummies.get(id)?.destroy(true);
         this.dummies.delete(id);
     }
 
@@ -117,7 +118,7 @@ export default class Game extends Phaser.Scene {
         const render = this.entities.get(key);
         if (render) {
             this.entities.delete(key);
-            render.destroy();
+            render.destroy(false);
         }
     }
 

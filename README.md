@@ -1,4 +1,4 @@
-# Clash Royale Clone Prototype
+# Nefties Defenders Prototype
 
 ## Client
 

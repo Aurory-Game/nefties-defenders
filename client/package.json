@@ -1,18 +1,22 @@
 {
-  "name": "cr-prototype",
+  "name": "nefties-defenders",
   "author": "Peter Achberger",
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dev": "esbuild src/CrPrototype.ts --bundle --outfile=public/game.js --global-name=bundle --servedir=public --serve=5000",
+    "dev": "esbuild src/NeftiesDefenders.ts --bundle --outfile=public/game.js --global-name=bundle --servedir=public --serve=5000",
     "typecheck": "tsc -watch",
-    "build": "tsc && esbuild src/CrPrototype.ts --bundle --outfile=public/game.js --global-name=bundle --minify"
+    "pack-assets": "node scripts/packAssets.mjs",
+    "build": "tsc && esbuild src/NeftiesDefenders.ts --bundle --outfile=public/game.js --global-name=bundle --minify"
   },
   "version": "1.0.0",
   "dependencies": {
     "colyseus.js": "^0.14.13",
     "esbuild": "^0.14.21",
+    "free-tex-packer-core": "^0.3.4",
+    "jimp": "^0.16.1",
     "phaser": "^3.55.2",
+    "sharp": "^0.30.4",
     "typescript": "^4.5.5"
   }
 }
