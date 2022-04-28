@@ -1,23 +1,58 @@
 import { EntityType } from './entities';
 
 export enum CardId {
-    MeleeFighter = 1,
-    RangedFighter,
-    Flying,
+    Beeblock = 1,
+    Bitebit,
+    BlockChoy,
+    BloomTail,
+    ChocoMint,
+    Dinobit,
+    Dipking,
+    ShibaIgnite,
+    Unika,
+    Zzoo,
 }
 
 export const CARDS:Record<CardId, CardData> = {
-    [CardId.MeleeFighter]: {
-        manaCost: 3,
-        entityType: EntityType.MeleeFighter
-    },
-    [CardId.RangedFighter]: {
-        manaCost: 4,
-        entityType: EntityType.RangedFighter
-    },
-    [CardId.Flying]: {
+    [CardId.Beeblock]: {
         manaCost: 5,
-        entityType: EntityType.Flying
+        entityType: EntityType.Beeblock
+    },
+    [CardId.Bitebit]: {
+        manaCost: 5,
+        entityType: EntityType.Bitebit
+    },
+    [CardId.BlockChoy]: {
+        manaCost: 4,
+        entityType: EntityType.BlockChoy
+    },
+    [CardId.BloomTail]: {
+        manaCost: 3,
+        entityType: EntityType.BloomTail
+    },
+    [CardId.ChocoMint]: {
+        manaCost: 4,
+        entityType: EntityType.ChocoMint
+    },
+    [CardId.Dinobit]: {
+        manaCost: 7,
+        entityType: EntityType.Dinobit
+    },
+    [CardId.Dipking]: {
+        manaCost: 4,
+        entityType: EntityType.Dipking
+    },
+    [CardId.ShibaIgnite]: {
+        manaCost: 10,
+        entityType: EntityType.ShibaIgnite
+    },
+    [CardId.Unika]: {
+        manaCost: 6,
+        entityType: EntityType.Unika
+    },
+    [CardId.Zzoo]: {
+        manaCost: 4,
+        entityType: EntityType.Zzoo
     },
 };
 

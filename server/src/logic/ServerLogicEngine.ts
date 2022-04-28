@@ -144,6 +144,7 @@ export default class ServerLogicEngine {
         this.sync.state = GameState.DONE;
         this.sync.nextStateAt = this.sync.tick + TICKS_3S;
         broadcastMessage(this.room, MessageKind.GAME_OVER, { winner: winner?.key });
+        this.entityManager.gameOver();
     }
 
     onPlayCard(client:Client, msg:MessageType[MessageKind.PLAY_CARD] | undefined) {

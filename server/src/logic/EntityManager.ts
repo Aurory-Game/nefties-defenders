@@ -24,6 +24,12 @@ export default class EntityManager {
         }
     }
 
+    gameOver() {
+        for (const entity of this.entities) {
+            entity.sync.state = EntityState.IDLE;
+        }
+    }
+
     private ai(curTick:number) {
         // Update all entities' actions.
         for (const entity of this.entities) {

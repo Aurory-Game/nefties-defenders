@@ -16,7 +16,7 @@ export default class EntityRender {
     dir:string;
     state:EntityState;
 
-    constructor(scene:Phaser.Scene, type:EntityType, isOurs:boolean) {
+    constructor(scene:Phaser.Scene, type:EntityType, private isOurs:boolean) {
         this.root = scene.add.container(0, 0);
         const data = ENTITIES[type];
         const size = data.size.size * FIELD_TILE_SIZE;
@@ -56,7 +56,7 @@ export default class EntityRender {
             .fillRoundedRect(-FIELD_TILE_SIZE / 2, -FIELD_TILE_SIZE / 2, FIELD_TILE_SIZE, FIELD_TILE_SIZE, 5)
             .strokeRoundedRect(-FIELD_TILE_SIZE / 2, -FIELD_TILE_SIZE / 2, FIELD_TILE_SIZE, FIELD_TILE_SIZE, 5);
         this.root.add(this.marker);
-        this.sprite?.setTexture('anims', `${this.skin}-Idle0-0.png`);
+        this.sprite?.setTexture('anims', `${this.skin}-Idle4-0.png`);
     }
 
     update(time:number) {
@@ -98,13 +98,17 @@ export default class EntityRender {
             case EntityState.MOVING:
                 this.sprite.play(`${this.skin}-Move${this.dir}`);
                 break;
+            case EntityState.IDLE:
+                this.sprite.play(`${this.skin}-Idle4`);
+                break;
             }
         }
     }
 
     destroy(instant:boolean) {
         if (!instant && this.sprite) {
-            this.sprite.play(`${this.skin}-Death0`);
+            const num = this.isOurs ? 0 : 4;
+            this.sprite.play(`${this.skin}-Death${num}`);
             this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => this.root.destroy());
         } else {
             this.root.destroy();

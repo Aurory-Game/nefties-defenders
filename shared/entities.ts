@@ -3,9 +3,16 @@ import { FIELD_TILES_HEIGHT, FIELD_TILES_WIDTH } from './constants';
 export enum EntityType {
     BigTower = 1,
     SmallTower,
-    MeleeFighter,
-    RangedFighter,
-    Flying,
+    Beeblock,
+    Bitebit,
+    BlockChoy,
+    BloomTail,
+    ChocoMint,
+    Dinobit,
+    Dipking,
+    ShibaIgnite,
+    Unika,
+    Zzoo
 }
 
 export type EntityData = {
@@ -20,7 +27,7 @@ export type EntityData = {
     walkSpeed:number;
     isFlying:boolean;
     size:EntitySize;
-    skin:string;
+    skin:string|null;
 }
 
 type EntitySize = { t:'circle', size:number } | { t:'square', size:number };
@@ -46,36 +53,107 @@ export const ENTITIES:Record<EntityType, EntityData> = {
         size: { t: 'square', size: 3 },
         skin: null,
     },
-    [EntityType.MeleeFighter]: {
-        hitpoints: 1000,
-        damage: 100,
-        range: 1.5,
-        hitSpeed: 1,
-        walkSpeed: 2,
-        isFlying: false,
-        size: { t: 'circle', size: 0.6 },
-        skin: 'Dinobit',
-    },
-    [EntityType.RangedFighter]: {
-        hitpoints: 750,
-        damage: 75,
-        range: 6,
-        hitSpeed: 1.2,
-        walkSpeed: 2.25,
-        isFlying: false,
-        size: { t: 'circle', size: 0.4 },
-        skin: 'Bitebit',
-    },
-    [EntityType.Flying]: {
-        hitpoints: 600,
-        damage: 50,
-        range: 1.5,
-        hitSpeed: 0.7,
-        walkSpeed: 2.6,
+    [EntityType.Beeblock]: {
+        skin: 'Beeblock',
         isFlying: true,
         size: { t: 'circle', size: 0.4 },
-        skin: null,
+        hitpoints: 600,
+        damage: 70,
+        range: 2,
+        hitSpeed: 1,
+        walkSpeed: 2.5
     },
+    [EntityType.Bitebit]: {
+        skin: 'Bitebit',
+        isFlying: false,
+        size: { t: 'circle', size: 0.7 },
+        hitpoints: 1000,
+        damage: 200,
+        range: 1.5,
+        hitSpeed: 1,
+        walkSpeed: 2
+    },
+    [EntityType.BlockChoy]: {
+        skin: 'BlockChoy',
+        isFlying: false,
+        size: { t: 'circle', size: 0.5 },
+        hitpoints: 600,
+        damage: 60,
+        range: 6,
+        hitSpeed: 1,
+        walkSpeed: 2.7
+    },
+    [EntityType.BloomTail]: {
+        skin: 'BloomTail',
+        isFlying: false,
+        size: { t: 'circle', size: 0.5 },
+        hitpoints: 600,
+        damage: 80,
+        range: 1.5,
+        hitSpeed: 1,
+        walkSpeed: 2.5
+    },
+    [EntityType.ChocoMint]: {
+        skin: 'ChocoMint',
+        isFlying: false,
+        size: { t: 'circle', size: 0.4 },
+        hitpoints: 500,
+        damage: 80,
+        range: 6,
+        hitSpeed: 1,
+        walkSpeed: 2.5
+    },
+    [EntityType.Dinobit]: {
+        skin: 'Dinobit',
+        isFlying: false,
+        size: { t: 'circle', size: 0.7 },
+        hitpoints: 1300,
+        damage: 170,
+        range: 1.5,
+        hitSpeed: 1,
+        walkSpeed: 2
+    },
+    [EntityType.Dipking]: {
+        skin: 'Dipking',
+        isFlying: false,
+        size: { t: 'circle', size: 0.5 },
+        hitpoints: 800,
+        damage: 100,
+        range: 2,
+        hitSpeed: 1,
+        walkSpeed: 2.2
+    },
+    [EntityType.ShibaIgnite]: {
+        skin: 'ShibaIgnite',
+        isFlying: false,
+        size: { t: 'circle', size: 0.8 },
+        hitpoints: 2000,
+        damage: 170,
+        range: 1.5,
+        hitSpeed: 1,
+        walkSpeed: 1.5
+    },
+    [EntityType.Unika]: {
+        skin: 'Unika',
+        isFlying: false,
+        size: { t: 'circle', size: 0.6 },
+        hitpoints: 1100,
+        damage: 130,
+        range: 1.5,
+        hitSpeed: 1,
+        walkSpeed: 2.5
+    },
+    [EntityType.Zzoo]: {
+        skin: 'Zzoo',
+        isFlying: true,
+        size: { t: 'circle', size: 0.3 },
+        hitpoints: 400,
+        damage: 100,
+        range: 2,
+        hitSpeed: 1,
+        walkSpeed: 3.5
+    },
+
 };
 
 const INFLUENCE:Partial<Record<EntityType, {w:number, h:number}>> = {
@@ -121,4 +199,5 @@ export enum EntityState {
     /** For buildings without target. */
     STANDING,
     ATTACKING,
+    IDLE,
 }
