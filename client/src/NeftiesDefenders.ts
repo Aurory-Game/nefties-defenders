@@ -13,7 +13,8 @@ export class NeftiesDefenders {
             scale: {
                 width: WIDTH,
                 height: HEIGHT,
-                mode: Phaser.Scale.FIT,
+                // @ts-expect-error Phaser has wrong types.
+                scaleMode: Phaser.Scale.FIT,
                 autoCenter: Phaser.Scale.CENTER_BOTH
             },
             type: Phaser.AUTO,

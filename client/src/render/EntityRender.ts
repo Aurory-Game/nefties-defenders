@@ -27,6 +27,8 @@ export default class EntityRender {
             this.sprite = scene.add.sprite(0, 0, 'anims');
             this.dir = isOurs ? '0' : '4';
             this.root.add(this.sprite);
+            this.sprite.setPipeline(isOurs ? 'blueOutline' : 'redOutline');
+            this.sprite.setFXPadding(4);
         } else if (data.size.t == 'square') {
             this.root.add(scene.add.rectangle(0, 0, size, size, color));
         } else {

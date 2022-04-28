@@ -15,7 +15,7 @@
     "esbuild": "^0.14.21",
     "free-tex-packer-core": "^0.3.4",
     "jimp": "^0.16.1",
-    "phaser": "^3.55.2",
+    "phaser": "^3.60.0-beta.5",
     "sharp": "^0.30.4",
     "typescript": "^4.5.5"
   }
