@@ -5,7 +5,7 @@ import Interpolator from 'util/Interpolator';
 export default class EntityRender {
 
     root:Phaser.GameObjects.Container;
-    marker:Phaser.GameObjects.Graphics;
+    marker:Phaser.GameObjects.Rectangle;
     stateTx:Phaser.GameObjects.Text;
     hitpointsTx:Phaser.GameObjects.Text;
     interpolator:Interpolator;
@@ -52,11 +52,8 @@ export default class EntityRender {
     }
 
     addMarker() {
-        this.marker = this.root.scene.add.graphics()
-            .lineStyle(4, 0xaaaaaa, 0.5)
-            .fillStyle(0xaaaaaa, 0.25)
-            .fillRoundedRect(-FIELD_TILE_SIZE / 2, -FIELD_TILE_SIZE / 2, FIELD_TILE_SIZE, FIELD_TILE_SIZE, 5)
-            .strokeRoundedRect(-FIELD_TILE_SIZE / 2, -FIELD_TILE_SIZE / 2, FIELD_TILE_SIZE, FIELD_TILE_SIZE, 5);
+        this.marker = this.root.scene.add.rectangle(0, 0, FIELD_TILE_SIZE, FIELD_TILE_SIZE, 0xaaaaaa, 0.25);
+        this.marker.setStrokeStyle(4, 0xaaaaaa, 0.5);
         this.root.add(this.marker);
         this.sprite?.setTexture('anims', `${this.skin}-Idle4-0.png`);
     }
