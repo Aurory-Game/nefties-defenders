@@ -1,5 +1,5 @@
 node_modules/
 build/
 client/public/game.js
-client/public/assets/chars/
+client/public/assets/
 client/schema/

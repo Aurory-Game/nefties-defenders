@@ -27,8 +27,12 @@ export type EntityData = {
     walkSpeed:number;
     isFlying:boolean;
     size:EntitySize;
-    skin:string|null;
+    skin:SkinType;
 }
+
+export type SkinType = { moving:true, key:string} | {moving:false, standing:BuildingKeys, destroyed:BuildingKeys };
+export type BuildingKeys = { our:BuildingKey, opponent:BuildingKey };
+export type BuildingKey = { key:string, originX:number, originY:number };
 
 type EntitySize = { t:'circle', size:number } | { t:'square', size:number };
 
@@ -41,7 +45,17 @@ export const ENTITIES:Record<EntityType, EntityData> = {
         walkSpeed: 0,
         isFlying: false,
         size: { t: 'square', size: 4 },
-        skin: null,
+        skin: {
+            moving: false,
+            standing: {
+                our: { key: 'BigCastleBackBlueRender01.png', originX: 0.5, originY: 0.4 },
+                opponent: { key: 'BigCastleFrontPinkRender01.png', originX: 0.5, originY: 0.6 }
+            },
+            destroyed: {
+                our: { key: 'CastleRuinsBackRender.png', originX: 0.5, originY: 0.4 },
+                opponent: { key: 'CastleRuinsFrontRender.png', originX: 0.5, originY: 0.6 }
+            },
+        },
     },
     [EntityType.SmallTower]: {
         hitpoints: 3000,
@@ -51,10 +65,20 @@ export const ENTITIES:Record<EntityType, EntityData> = {
         walkSpeed: 0,
         isFlying: false,
         size: { t: 'square', size: 3 },
-        skin: null,
+        skin: {
+            moving: false,
+            standing: {
+                our: { key: 'TowerBackRender.png', originX: 0.5, originY: 0.6 },
+                opponent: { key: 'MiniCastleFrontRender.png', originX: 0.4, originY: 0.7 }
+            },
+            destroyed: {
+                our: { key: 'TowerRuinsBack.png', originX: 0.5, originY: 0.6 },
+                opponent: { key: 'TowerRuinsFront.png', originX: 0.4, originY: 0.7 }
+            },
+        },
     },
     [EntityType.Beeblock]: {
-        skin: 'Beeblock',
+        skin: { moving: true, key: 'Beeblock' },
         isFlying: true,
         size: { t: 'circle', size: 0.4 },
         hitpoints: 600,
@@ -64,7 +88,7 @@ export const ENTITIES:Record<EntityType, EntityData> = {
         walkSpeed: 2.5
     },
     [EntityType.Bitebit]: {
-        skin: 'Bitebit',
+        skin: { moving: true, key: 'Bitebit' },
         isFlying: false,
         size: { t: 'circle', size: 0.7 },
         hitpoints: 1000,
@@ -74,7 +98,7 @@ export const ENTITIES:Record<EntityType, EntityData> = {
         walkSpeed: 2
     },
     [EntityType.BlockChoy]: {
-        skin: 'BlockChoy',
+        skin: { moving: true, key: 'BlockChoy' },
         isFlying: false,
         size: { t: 'circle', size: 0.5 },
         hitpoints: 600,
@@ -84,7 +108,7 @@ export const ENTITIES:Record<EntityType, EntityData> = {
         walkSpeed: 2.7
     },
     [EntityType.BloomTail]: {
-        skin: 'BloomTail',
+        skin: { moving: true, key: 'BloomTail' },
         isFlying: false,
         size: { t: 'circle', size: 0.5 },
         hitpoints: 600,
@@ -94,7 +118,7 @@ export const ENTITIES:Record<EntityType, EntityData> = {
         walkSpeed: 2.5
     },
     [EntityType.ChocoMint]: {
-        skin: 'ChocoMint',
+        skin: { moving: true, key: 'ChocoMint' },
         isFlying: false,
         size: { t: 'circle', size: 0.4 },
         hitpoints: 500,
@@ -104,7 +128,7 @@ export const ENTITIES:Record<EntityType, EntityData> = {
         walkSpeed: 2.5
     },
     [EntityType.Dinobit]: {
-        skin: 'Dinobit',
+        skin: { moving: true, key: 'Dinobit' },
         isFlying: false,
         size: { t: 'circle', size: 0.7 },
         hitpoints: 1300,
@@ -114,7 +138,7 @@ export const ENTITIES:Record<EntityType, EntityData> = {
         walkSpeed: 2
     },
     [EntityType.Dipking]: {
-        skin: 'Dipking',
+        skin: { moving: true, key: 'Dipking' },
         isFlying: false,
         size: { t: 'circle', size: 0.5 },
         hitpoints: 800,
@@ -124,7 +148,7 @@ export const ENTITIES:Record<EntityType, EntityData> = {
         walkSpeed: 2.2
     },
     [EntityType.ShibaIgnite]: {
-        skin: 'ShibaIgnite',
+        skin: { moving: true, key: 'ShibaIgnite' },
         isFlying: false,
         size: { t: 'circle', size: 0.8 },
         hitpoints: 2000,
@@ -134,7 +158,7 @@ export const ENTITIES:Record<EntityType, EntityData> = {
         walkSpeed: 1.5
     },
     [EntityType.Unika]: {
-        skin: 'Unika',
+        skin: { moving: true, key: 'Unika' },
         isFlying: false,
         size: { t: 'circle', size: 0.6 },
         hitpoints: 1100,
@@ -144,7 +168,7 @@ export const ENTITIES:Record<EntityType, EntityData> = {
         walkSpeed: 2.5
     },
     [EntityType.Zzoo]: {
-        skin: 'Zzoo',
+        skin: { moving: true, key: 'Zzoo' },
         isFlying: true,
         size: { t: 'circle', size: 0.3 },
         hitpoints: 400,
@@ -157,8 +181,8 @@ export const ENTITIES:Record<EntityType, EntityData> = {
 };
 
 const INFLUENCE:Partial<Record<EntityType, {w:number, h:number}>> = {
-    [EntityType.BigTower]: { w: 9, h: 8 },
-    [EntityType.SmallTower]: { w: 5, h: 11 },
+    [EntityType.BigTower]: { w: 9, h: 6 },
+    [EntityType.SmallTower]: { w: 5, h: 9 },
 };
 
 export function getInfluence(type:EntityType, x:number, y:number):InfluenceRange {

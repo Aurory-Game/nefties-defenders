@@ -24,16 +24,16 @@ export const HAND_SIZE:number = 4;
 
 export const FIELD_TILES_WIDTH:number = 18;
 export const FIELD_TILES_WIDTH_MID:number = FIELD_TILES_WIDTH / 2;
-export const FIELD_TILES_HEIGHT:number = 32;
+export const FIELD_TILES_HEIGHT:number = 27;
 export const FIELD_TILES_HEIGHT_MID:number = FIELD_TILES_HEIGHT / 2;
 export const FIELD_TILE_SIZE:number = 32;
 export const LEFT_LANE:number = 3.5;
 export const RIGHT_LANE:number = FIELD_TILES_WIDTH - LEFT_LANE;
 
 export const TOWERS = [
-    { x: 9, y: 29, type: EntityType.BigTower },
-    { x: 3.5, y: 26.5, type: EntityType.SmallTower },
-    { x: 14.5, y: 26.5, type: EntityType.SmallTower },
+    { x: 9, y: 24, type: EntityType.BigTower },
+    { x: 3.5, y: 21.5, type: EntityType.SmallTower },
+    { x: 14.5, y: 21.5, type: EntityType.SmallTower },
 ];
 
 export const FIELD_MAP =
@@ -50,14 +50,9 @@ GGGGGGGGGGGGGGGGGG
 GGGGGGGGGGGGGGGGGG
 GGGGGGGGGGGGGGGGGG
 GGGGGGGGGGGGGGGGGG
-GGGGGGGGGGGGGGGGGG
-GGGGGGGGGGGGGGGGGG
-GGGGGGGGGGGGGGGGGG
 WWWBWWWWWWWWWWBWWW
 WWWBWWWWWWWWWWBWWW
-GGGGGGGGGGGGGGGGGG
-GGGGGGGGGGGGGGGGGG
-GGGGGGGGGGGGGGGGGG
+WWWBWWWWWWWWWWBWWW
 GGGGGGGGGGGGGGGGGG
 GGGGGGGGGGGGGGGGGG
 GGGGGGGGGGGGGGGGGG

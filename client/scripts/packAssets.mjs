@@ -1,5 +1,5 @@
 import texturePacker from 'free-tex-packer-core';
-import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'fs';
+import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'fs';
 import path from 'path';
 import Jimp from 'jimp';
 import sharp from 'sharp';
@@ -8,10 +8,10 @@ const src = 'assets/Characters';
 
 const assets = readdirSync(src);
 
-const images = [];
+const charImages = [];
 const animsData = [];
 
-const scale = 2/3;
+const scale = 2 / 3;
 const scaleMode = Jimp.RESIZE_HERMITE;
 
 for (const name of assets) {
@@ -35,14 +35,13 @@ for (const name of assets) {
             });
             for (const f of files) {
                 const pngPath = `${name}-${anim}${dir}-${f}`;
-                images.push({
+                charImages.push({
                     path: pngPath,
-                    // contents: readFileSync(path.join(src, name, anim, dir, f))
                     contents: Jimp.read(path.join(src, name, anim, dir, f))
                         .then(img => img.scale(scale, scaleMode).getBufferAsync(Jimp.MIME_PNG))
                 });
                 frames.push({
-                    key: 'anims',
+                    key: 'img',
                     frame: pngPath
                 });
             }
@@ -50,48 +49,94 @@ for (const name of assets) {
     }
 }
 
-console.log(`Resizing ${images.length} images.`);
+// Add towers.
+const towerImages = [];
+const towersDir = 'assets/Towers';
 
-const resolved = await Promise.all(images.map(img => img.contents));
-images.forEach((img, i) => img.contents = resolved[i]);
+for (const name of readdirSync(towersDir)) {
+    const imgPath = path.join(towersDir, name);
+    towerImages.push({
+        path: name,
+        contents: Jimp.read(imgPath)
+            .then(img => img.scale(1 / 4, scaleMode).getBufferAsync(Jimp.MIME_PNG))
+    });
+}
 
-console.log(`Packing ${images.length} images.`);
+const allImages = [...charImages, ...towerImages];
+console.log(`Resizing ${allImages.length} images.`);
 
-texturePacker(images, {
-    width: 4096,
-    height: 4096,
-    powerOfTwo: true,
-    padding: 1,
-    // scale: 0.66, // Not working ideally, resizing before passing to packer.
-    // packer: 'OptimalPacker', // Optimal is slightly better, but terribly slow.
-    allowRotation: false,
-    exporter: 'Phaser3'
-}, async (files, error) => {
-    if (error) {
-        console.error('Failed', error);
-    } else {
-        const baseDir = path.join('public', 'assets', 'chars');
-        rmSync(baseDir, { force: true, recursive: true });
-        mkdirSync(baseDir, { recursive: true });
-        const textures = [];
-        for (const file of files) {
-            if (file.name.endsWith('.json')) { // Pack into multi-atlas.
-                const atlas = JSON.parse(file.buffer.toString('utf-8'));
-                textures.push(...atlas.textures);
-            } else {
-                const buffer = await sharp(file.buffer).png({
-                    compressionLevel: 9,
-                    quality: 90
-                }).toBuffer();
-                writeFileSync(path.join(baseDir, file.name), buffer);
-                console.log('Compressed and exported '+file.name);
+const resolved = await Promise.all(allImages.map(img => img.contents));
+allImages.forEach((img, i) => img.contents = resolved[i]);
+
+console.log(`Packing and compressing ${allImages.length} images.`);
+
+function packAndCompress(images, name) {
+    return new Promise((res, rej) => {
+        texturePacker(images, {
+            width: 4096,
+            height: 4096,
+            powerOfTwo: true,
+            padding: 1,
+            textureName: name,
+            // scale: 0.66, // Not working ideally, resizing before passing to packer.
+            // packer: 'OptimalPacker', // Optimal is slightly better, but terribly slow.
+            allowRotation: false,
+            exporter: 'Phaser3'
+        }, async (files, error) => {
+            if (error) rej(error);
+            else {
+                const atlasData = [];
+                const textures = [];
+                for (const file of files) {
+                    if (file.name.endsWith('.json')) { // Pack into multi-atlas.
+                        const atlas = JSON.parse(file.buffer.toString('utf-8'));
+                        atlasData.push(...atlas.textures);
+                    } else {
+                        const buffer = await sharp(file.buffer).png({
+                            compressionLevel: 9,
+                            quality: 90
+                        }).toBuffer();
+                        textures.push({name: file.name, buffer});
+                        console.log('Compressed ' + file.name);
+                    }
+                }
+                res({ textures, atlasData });
             }
-        }
-        writeFileSync(path.join(baseDir, 'multiatlas.json'), JSON.stringify({ textures }));
-        console.log('Exported multiatlas.json.');
+        });
+    });
+}
 
-        writeFileSync(path.join(baseDir, 'anims.json'), JSON.stringify({ anims: animsData }));
-        console.log('Exported anims.json.');
-        console.log('Done.');
-    }
-});
+const chars = await packAndCompress(charImages, 'chars');
+const towers = await packAndCompress(towerImages, 'towers');
+
+console.log('Resizing and compressing background.');
+const backFile = 'assets/NeftiesDefenders_Background_NoStructures.jpg';
+const backScaled = await Jimp.read(backFile)
+    .then(img => img.scaleToFit(723, 1280, scaleMode));
+const backCompressed = await sharp(await backScaled.getBufferAsync(Jimp.MIME_PNG)).png({
+    compressionLevel: 9,
+    quality: 90
+}).toBuffer();
+const backgroundTexture = {name: 'background.png', buffer: backCompressed};
+const backgroundAtlasData = {image: 'background.png', frames: [{
+    filename: 'background',
+    frame: { x: 0, y: 0, w: backScaled.getWidth(), h: backScaled.getHeight() }
+}]};
+
+const exportDir = path.join('public', 'assets');
+rmSync(exportDir, { force: true, recursive: true });
+mkdirSync(exportDir, { recursive: true });
+
+for (const tex of [...chars.textures, ...towers.textures, backgroundTexture]) {
+    writeFileSync(path.join(exportDir, tex.name), tex.buffer);
+    console.log('Exported ' + tex.name);
+}
+
+writeFileSync(path.join(exportDir, 'multiatlas.json'), JSON.stringify({
+    textures: [...chars.atlasData, ...towers.atlasData, backgroundAtlasData]
+}));
+console.log('Exported multiatlas.json.');
+writeFileSync(path.join(exportDir, 'anims.json'), JSON.stringify({ anims: animsData }));
+console.log('Exported anims.json.');
+
+console.log('Done.');

@@ -1,4 +1,4 @@
-import { ENTITIES, EntityState, EntityType } from 'shared/entities';
+import { ENTITIES, EntityState, EntityType, SkinType } from 'shared/entities';
 import { FIELD_TILES_HEIGHT, FIELD_TILE_SIZE, TIMESTEP } from 'shared/constants';
 import Interpolator from 'util/Interpolator';
 
@@ -12,7 +12,7 @@ export default class EntityRender {
     hitpointsInterpolator:Interpolator;
     readonly maxHitpoints:number;
     sprite:Phaser.GameObjects.Sprite;
-    skin:string;
+    skin:SkinType;
     dir:string;
     state:EntityState;
 
@@ -24,11 +24,19 @@ export default class EntityRender {
         const color2 = isOurs ? 0x0000ff : 0xff0000;
         if (data.skin) {
             this.skin = data.skin;
-            this.sprite = scene.add.sprite(0, 0, 'anims');
-            this.dir = isOurs ? '0' : '4';
+            this.sprite = scene.add.sprite(0, 0, 'img');
             this.root.add(this.sprite);
             this.sprite.setPipeline(isOurs ? 'blueOutline' : 'redOutline');
-            this.sprite.setFXPadding(4);
+            if (this.skin.moving === true) {
+                this.dir = isOurs ? '0' : '4';
+                this.sprite.setFXPadding(4);
+            } else {
+                // this.root.add(scene.add.rectangle(0, 0, size, size, color).setAlpha(0.5));
+                this.sprite.setScale(0.65);
+                const { key, originX, originY } = isOurs ? this.skin.standing.our : this.skin.standing.opponent;
+                this.sprite.setFrame(key);
+                this.sprite.setOrigin(originX, originY);
+            }
         } else if (data.size.t == 'square') {
             this.root.add(scene.add.rectangle(0, 0, size, size, color));
         } else {
@@ -42,7 +50,7 @@ export default class EntityRender {
             this.stateTx = scene.add.text(0, -10, EntityState[EntityState.SPAWNING]).setOrigin(0.5, 0);
             this.root.add([tx, this.stateTx]);
         }
-        this.hitpointsTx = scene.add.text(0, -25, '').setOrigin(0.5, 0);
+        this.hitpointsTx = scene.add.text(0, -this.sprite.displayHeight * 0.45, '').setOrigin(0.5, 0);
         this.root.add(this.hitpointsTx);
         if (data.walkSpeed > 0) this.interpolator = new Interpolator(TIMESTEP * 2, TIMESTEP, 2);
         else this.interpolator = null;
@@ -55,7 +63,8 @@ export default class EntityRender {
         this.marker = this.root.scene.add.rectangle(0, 0, FIELD_TILE_SIZE, FIELD_TILE_SIZE, 0xaaaaaa, 0.25);
         this.marker.setStrokeStyle(4, 0xaaaaaa, 0.5);
         this.root.add(this.marker);
-        this.sprite?.setTexture('anims', `${this.skin}-Idle4-0.png`);
+        if (this.skin.moving === true)
+            this.sprite?.setTexture('img', `${this.skin.key}-Idle4-0.png`);
     }
 
     update(time:number) {
@@ -84,31 +93,39 @@ export default class EntityRender {
     setState(state:EntityState) {
         this.state = state;
         this.stateTx?.setText(EntityState[state]);
-        if (this.sprite) {
+        if (this.sprite && this.skin.moving === true) {
             switch (state) {
             case EntityState.SPAWNING:
-                this.sprite.play(`${this.skin}-Spawn${this.dir}`);
+                this.sprite.play(`${this.skin.key}-Spawn${this.dir}`);
                 break;
             case EntityState.ATTACKING:
                 // TODO rotate to attacking target. Needed for ranged units that won't move towards them,
                 // so our angle doesn't change. Will need support from server.
-                this.sprite.play(`${this.skin}-Attack${this.dir}`);
+                this.sprite.play(`${this.skin.key}-Attack${this.dir}`);
                 break;
             case EntityState.MOVING:
-                this.sprite.play(`${this.skin}-Move${this.dir}`);
+                this.sprite.play(`${this.skin.key}-Move${this.dir}`);
                 break;
             case EntityState.IDLE:
-                this.sprite.play(`${this.skin}-Idle4`);
+                this.sprite.play(`${this.skin.key}-Idle4`);
                 break;
             }
         }
     }
 
     destroy(instant:boolean) {
+        this.hitpointsTx.setText('');
         if (!instant && this.sprite) {
-            const num = this.isOurs ? 0 : 4;
-            this.sprite.play(`${this.skin}-Death${num}`);
-            this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => this.root.destroy());
+            if (this.skin.moving === true) {
+                const num = this.isOurs ? 0 : 4;
+                this.sprite.play(`${this.skin.key}-Death${num}`);
+                this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => this.root.destroy());
+            } else {
+                const { key, originX, originY } = this.isOurs ? this.skin.destroyed.our : this.skin.destroyed.opponent;
+                this.sprite.setFrame(key);
+                this.sprite.setOrigin(originX, originY);
+                this.sprite.resetPipeline();
+            }
         } else {
             this.root.destroy();
         }

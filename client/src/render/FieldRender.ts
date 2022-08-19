@@ -1,29 +1,27 @@
 import { FIELD_MAP_DATA, FIELD_TILES_HEIGHT, FIELD_TILES_WIDTH, FIELD_TILE_SIZE } from 'shared/constants';
-import { HEIGHT, WIDTH } from 'scenes/Game';
 import { InfluenceRange } from 'shared/entities';
 
 export default class FieldRender {
 
     root:Phaser.GameObjects.Container;
-    background:Phaser.Tilemaps.TilemapLayer;
     influence:Phaser.GameObjects.Graphics;
     influenceRt:Phaser.GameObjects.RenderTexture;
 
     constructor(public scene:Phaser.Scene) {
-        const availableWidth = WIDTH; // TODO responsive scaling.
-        const availableHeight = HEIGHT * (1 - 0.17);
-        const minPadding = 30;
-        const w = FIELD_TILES_WIDTH * FIELD_TILE_SIZE;
         const h = FIELD_TILES_HEIGHT * FIELD_TILE_SIZE;
-        const scale = Math.min(availableWidth / (w + minPadding), availableHeight / (h + minPadding));
+        const scale = 830 / h;
 
-        this.root = scene.add.container((availableWidth - w * scale) / 2, (availableHeight - h * scale) / 2)
+        this.root = scene.add.container(80, 120)
             .setScale(scale).setDepth(1);
-        this.background = this.makeTilemap().layers[0].tilemapLayer;
-        this.background.setScale(scale).setPosition(this.root.x, this.root.y);
+        const fieldWidth = FIELD_TILES_WIDTH * FIELD_TILE_SIZE * scale;
+        const fieldHeight = FIELD_TILES_HEIGHT * FIELD_TILE_SIZE * scale;
+        // Debug tile overlay:
+        // const background = background = this.makeTilemap().layers[0].tilemapLayer;
+        // background.setScale(scale).setPosition(this.root.x, this.root.y);
+        // background.alpha = 0.5;
         this.influence = scene.make.graphics({fillStyle: { color: 0xdd2222 }}).setScale(scale);
         this.influenceRt = scene.add.renderTexture(this.root.x, this.root.y,
-            this.background.displayWidth, this.background.displayHeight).setDepth(10).setAlpha(0).setOrigin(0);
+            fieldWidth, fieldHeight).setDepth(10).setAlpha(0).setOrigin(0);
     }
 
     makeTilemap() {

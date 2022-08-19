@@ -25,7 +25,7 @@ export default class ClientGameplay {
     }
 
     onCardDragMove(index:number, x:number, y:number, isDone:boolean):boolean {
-        const p = this.game.field.background.getLocalPoint(x, y);
+        const p = this.game.field.root.getLocalPoint(x, y);
         const placement = this.getFieldPlacement(p);
         const id = this.hand.getNextId();
         this.game.field.setInfluenceVisible(!isDone);

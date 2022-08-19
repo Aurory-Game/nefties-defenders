@@ -8,7 +8,6 @@ import EntityRender from 'render/EntityRender';
 import { FieldPlacement, Placement } from 'logic/ClientGameplay';
 import { EntityState, EntityType } from 'shared/entities';
 import { MENU_KEY } from './Menu';
-import OutlineSpriteFX from 'render/OutlineSpriteFx';
 
 export default class Game extends Phaser.Scene {
 
@@ -38,14 +37,6 @@ export default class Game extends Phaser.Scene {
         this.manaBar = new ManaBar(this);
         this.handRender = new CardHandRender(this);
         this.field = new FieldRender(this);
-        if (this.renderer instanceof Phaser.Renderer.WebGL.WebGLRenderer) {
-            const red = this.renderer.pipelines.add('redOutline', new OutlineSpriteFX(this.game)) as OutlineSpriteFX;
-            const blue = this.renderer.pipelines.add('blueOutline', new OutlineSpriteFX(this.game)) as OutlineSpriteFX;
-            red.thickness = 3;
-            red.color.setFromRGB(Phaser.Display.Color.IntegerToRGB(0xff3333));
-            blue.thickness = 3;
-            blue.color.setFromRGB(Phaser.Display.Color.IntegerToRGB(0x3333ff));
-        }
     }
 
     /** Custom update function called by `RoomManager` server-synced time. */
@@ -176,5 +167,5 @@ export default class Game extends Phaser.Scene {
 }
 
 export const GAME_KEY:string = 'Game';
-export const WIDTH:number = 960;
+export const WIDTH:number = 723;
 export const HEIGHT:number = 1280;
