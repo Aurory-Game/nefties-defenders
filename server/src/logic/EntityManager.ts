@@ -65,10 +65,13 @@ export default class EntityManager {
             if (inAttackRange(entity, entity.target)) {
                 triggerAttack(entity, curTick);
             } else {
-                if (entity.data.walkSpeed == 0)
-                    throw 'Assertion failed: Buildings should not have target out of range.';
-                entity.sync.state = EntityState.MOVING;
-                this.setPathTowards(entity, entity.target);
+                if (entity.data.walkSpeed == 0) {
+                    entity.target = null;
+                    entity.sync.state = EntityState.STANDING;
+                } else {
+                    entity.sync.state = EntityState.MOVING;
+                    this.setPathTowards(entity, entity.target);
+                }
             }
         } else { // No target.
             if (entity.data.walkSpeed == 0) { // Buildings just stand there.
