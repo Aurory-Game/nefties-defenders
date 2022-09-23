@@ -69,10 +69,7 @@ export default class EntityRender {
         this.hitpointsInterpolator = new Interpolator(TIMESTEP * 2, TIMESTEP, 2);
         this.hitpointsInterpolator.add(0, data.hitpoints);
         this.maxHitpoints = data.hitpoints;
-        this.root.once(Phaser.GameObjects.Events.DESTROY, () => {
-            this.attackSfxDelayed?.destroy();
-            this.attackSfxDelayed = null;
-        });
+        this.root.once(Phaser.GameObjects.Events.DESTROY, this.cancelSfxQueue, this);
     }
 
     addMarker() {
@@ -138,9 +135,13 @@ export default class EntityRender {
             this.attackSfxDelayed = this.root.scene.time.delayedCall(
                 this.attackDelay * 1000, this.checkAttackSfx, [], this);
         } else {
-            this.attackSfxDelayed?.destroy();
-            this.attackSfxDelayed = null;
+            this.cancelSfxQueue();
         }
+    }
+
+    cancelSfxQueue() {
+        this.attackSfxDelayed?.destroy();
+        this.attackSfxDelayed = null;
     }
 
     destroy(instant:boolean) {
@@ -152,6 +153,7 @@ export default class EntityRender {
                 this.sprite.play(`${this.skin.key}-Death${num}`);
                 this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => this.root.destroy());
             } else {
+                this.cancelSfxQueue();
                 const { key, originX, originY } = this.isOurs ? this.skin.destroyed.our : this.skin.destroyed.opponent;
                 this.sprite.setFrame(key);
                 this.sprite.setOrigin(originX, originY);
