@@ -3,6 +3,9 @@ import { copyFileSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'fs'
 import path from 'path';
 import Jimp from 'jimp';
 import sharp from 'sharp';
+import Ffmpeg from 'fluent-ffmpeg';
+import ffmpegPath from 'ffmpeg-static';
+Ffmpeg.setFfmpegPath(ffmpegPath);
 
 const src = 'assets/Characters';
 
@@ -142,22 +145,42 @@ writeFileSync(path.join(exportDir, 'anims.json'), JSON.stringify({ anims: animsD
 console.log('Exported anims.json.');
 
 console.log('Processing audio files.');
+
+async function convertToAac(src, outFile) {
+    return new Promise((res, rej) => Ffmpeg(src)
+        .addOption('-loglevel error')
+        .output(outFile)
+        .audioCodec('aac')
+        .on('stderr', errLine => console.error('FFmpeg error: ' + errLine))
+        .on('error', err => rej(err))
+        .on('end', () => res())
+        .run()
+    );
+}
+
 const audioExportDir = 'assets/audio/';
 mkdirSync(path.join('public', audioExportDir), { recursive: true });
 const audioSources = ['assets/Audio/Building', 'assets/Audio/Nefties'];
-const audioAssets = audioSources.map(src => readdirSync(src).map(file => {
-    const { name } = path.parse(file);
+const audioAssets = await Promise.all(audioSources.map(src => readdirSync(src).map(async file => {
+    const { name, ext } = path.parse(file);
+    const srcPath = path.join(src, file);
     const targetPath = path.join(audioExportDir, file);
-    copyFileSync(path.join(src, file), path.join('public', targetPath));
+    copyFileSync(srcPath, path.join('public', targetPath));
+    const paths = [targetPath];
+    if (ext === '.ogg') {
+        const aacPath = path.join(audioExportDir, name + '.m4a');
+        await convertToAac(srcPath, path.join('public', aacPath));
+        paths.push(aacPath);
+    }
     return {
-        path: targetPath,
+        paths,
         id: name,
     };
-})).flat();
+})).flat());
 
 const audioFiles = [];
 for (const audio of audioAssets) {
-    audioFiles.push({ type: 'audio', key: audio.id, url: [audio.path] });
+    audioFiles.push({ type: 'audio', key: audio.id, url: audio.paths });
 }
 
 writeFileSync(path.join(exportDir, 'audiopack.json'), JSON.stringify({

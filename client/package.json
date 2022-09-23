@@ -13,6 +13,8 @@
   "dependencies": {
     "colyseus.js": "^0.14.13",
     "esbuild": "^0.14.21",
+    "ffmpeg-static": "^5.1.0",
+    "fluent-ffmpeg": "^2.1.2",
     "free-tex-packer-core": "^0.3.4",
     "jimp": "^0.16.1",
     "phaser": "^3.60.0-beta.5",
