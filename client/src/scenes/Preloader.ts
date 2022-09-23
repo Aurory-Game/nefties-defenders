@@ -8,7 +8,9 @@ export default class Preloader extends Phaser.Scene {
     }
 
     create() {
+        this.sound.pauseOnBlur = false;
         this.load.multiatlas('img', 'assets/multiatlas.json', 'assets/');
+        this.load.pack('audioPack', 'assets/audiopack.json');
         const loadTx = this.add.text(this.scale.width / 2, this.scale.height / 2, '0%', {
             fontSize: '45px',
         }).setOrigin(0.5);

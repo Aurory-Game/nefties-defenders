@@ -28,11 +28,17 @@ export type EntityData = {
     isFlying:boolean;
     size:EntitySize;
     skin:SkinType;
+    audio:AudioType;
 }
 
 export type SkinType = { moving:true, key:string} | {moving:false, standing:BuildingKeys, destroyed:BuildingKeys };
 export type BuildingKeys = { our:BuildingKey, opponent:BuildingKey };
 export type BuildingKey = { key:string, originX:number, originY:number };
+export type AudioType = {
+    spawn?:string,
+    death?:string,
+    attack?:string[],
+}
 
 type EntitySize = { t:'circle', size:number } | { t:'square', size:number };
 
@@ -56,6 +62,10 @@ export const ENTITIES:Record<EntityType, EntityData> = {
                 opponent: { key: 'CastleRuinsFrontRender.png', originX: 0.5, originY: 0.6 }
             },
         },
+        audio: {
+            death: 'DEF_BUILD_Destroy_Building_01',
+            attack: ['DEF_BUILD_Cannon_Fire_01', 'DEF_BUILD_Cannon_Fire_02', 'DEF_BUILD_Cannon_Fire_03'],
+        },
     },
     [EntityType.SmallTower]: {
         hitpoints: 3000,
@@ -76,9 +86,14 @@ export const ENTITIES:Record<EntityType, EntityData> = {
                 opponent: { key: 'TowerRuinsFront.png', originX: 0.4, originY: 0.7 }
             },
         },
+        audio: {
+            death: 'DEF_BUILD_Destroy_Building_01',
+            attack: ['DEF_BUILD_Cannon_Fire_01', 'DEF_BUILD_Cannon_Fire_02', 'DEF_BUILD_Cannon_Fire_03'],
+        },
     },
     [EntityType.Beeblock]: {
         skin: { moving: true, key: 'Beeblock' },
+        audio: {},
         isFlying: true,
         size: { t: 'circle', size: 0.4 },
         hitpoints: 600,
@@ -89,6 +104,11 @@ export const ENTITIES:Record<EntityType, EntityData> = {
     },
     [EntityType.Bitebit]: {
         skin: { moving: true, key: 'Bitebit' },
+        audio: {
+            spawn: 'DEF_NEFT_Bitbite_Spawn_01',
+            death: 'DEF_NEFT_BiteBit_Death_01',
+            attack: ['DEF_NEFT_BiteBit_Attack_01'],
+        },
         isFlying: false,
         size: { t: 'circle', size: 0.7 },
         hitpoints: 1000,
@@ -99,6 +119,11 @@ export const ENTITIES:Record<EntityType, EntityData> = {
     },
     [EntityType.BlockChoy]: {
         skin: { moving: true, key: 'BlockChoy' },
+        audio: {
+            spawn: 'DEF_NEFT_BlockChoy_Spawn_01',
+            death: 'DEF_NEFT_BlockChoy_Death_01',
+            attack: ['DEF_NEFT_BlockChoy_Attack_01'],
+        },
         isFlying: false,
         size: { t: 'circle', size: 0.5 },
         hitpoints: 600,
@@ -109,6 +134,11 @@ export const ENTITIES:Record<EntityType, EntityData> = {
     },
     [EntityType.BloomTail]: {
         skin: { moving: true, key: 'BloomTail' },
+        audio: {
+            spawn: 'DEF_NEFT_Bloomtail_Spawn_01',
+            death: 'DEF_NEFT_Bloomtail_Death_01',
+            attack: ['DEF_NEFT_Bloomtail_Attack_01'],
+        },
         isFlying: false,
         size: { t: 'circle', size: 0.5 },
         hitpoints: 600,
@@ -119,6 +149,7 @@ export const ENTITIES:Record<EntityType, EntityData> = {
     },
     [EntityType.ChocoMint]: {
         skin: { moving: true, key: 'ChocoMint' },
+        audio: {},
         isFlying: false,
         size: { t: 'circle', size: 0.4 },
         hitpoints: 500,
@@ -129,6 +160,11 @@ export const ENTITIES:Record<EntityType, EntityData> = {
     },
     [EntityType.Dinobit]: {
         skin: { moving: true, key: 'Dinobit' },
+        audio: {
+            spawn: 'DEF_NEFT_Dinobit_Spawn_01',
+            death: 'DEF_NEFT_Dinobit_Death_01',
+            attack: ['DEF_NEFT_Dinobit_Attack_01'],
+        },
         isFlying: false,
         size: { t: 'circle', size: 0.7 },
         hitpoints: 1300,
@@ -139,6 +175,11 @@ export const ENTITIES:Record<EntityType, EntityData> = {
     },
     [EntityType.Dipking]: {
         skin: { moving: true, key: 'Dipking' },
+        audio: {
+            spawn: 'DEF_NEFT_DipKing_Spawn_01',
+            death: 'DEF_NEFT_DipKing_Death_01',
+            attack: ['DEF_NEFT_DipKing_Attack_01'],
+        },
         isFlying: false,
         size: { t: 'circle', size: 0.5 },
         hitpoints: 800,
@@ -149,6 +190,11 @@ export const ENTITIES:Record<EntityType, EntityData> = {
     },
     [EntityType.ShibaIgnite]: {
         skin: { moving: true, key: 'ShibaIgnite' },
+        audio: {
+            spawn: 'DEF_NEFT_ShibaIgnite_Spawn_01',
+            death: 'DEF_NEFT_ShibaIgnite_Death_01',
+            attack: ['DEF_NEFT_ShibaIgnite_Attack_01'],
+        },
         isFlying: false,
         size: { t: 'circle', size: 0.8 },
         hitpoints: 2000,
@@ -159,6 +205,11 @@ export const ENTITIES:Record<EntityType, EntityData> = {
     },
     [EntityType.Unika]: {
         skin: { moving: true, key: 'Unika' },
+        audio: {
+            spawn: 'DEF_NEFT_Unika_Spawn_01',
+            death: 'DEF_NEFT_Unika_Death_01',
+            attack: ['DEF_NEFT_Unika_Attack_01'],
+        },
         isFlying: false,
         size: { t: 'circle', size: 0.6 },
         hitpoints: 1100,
@@ -169,6 +220,11 @@ export const ENTITIES:Record<EntityType, EntityData> = {
     },
     [EntityType.Zzoo]: {
         skin: { moving: true, key: 'Zzoo' },
+        audio: {
+            spawn: 'DEF_NEFT_Zzoo_Spawn_01',
+            death: 'DEF_NEFT_Zzoo_Death_01',
+            attack: ['DEF_NEFT_Zzoo_Attack_01'],
+        },
         isFlying: true,
         size: { t: 'circle', size: 0.3 },
         hitpoints: 400,

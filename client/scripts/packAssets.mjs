@@ -1,5 +1,5 @@
 import texturePacker from 'free-tex-packer-core';
-import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'fs';
+import { copyFileSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'fs';
 import path from 'path';
 import Jimp from 'jimp';
 import sharp from 'sharp';
@@ -96,7 +96,7 @@ function packAndCompress(images, name) {
                             compressionLevel: 9,
                             quality: 90
                         }).toBuffer();
-                        textures.push({name: file.name, buffer});
+                        textures.push({ name: file.name, buffer });
                         console.log('Compressed ' + file.name);
                     }
                 }
@@ -117,11 +117,13 @@ const backCompressed = await sharp(await backScaled.getBufferAsync(Jimp.MIME_PNG
     compressionLevel: 9,
     quality: 90
 }).toBuffer();
-const backgroundTexture = {name: 'background.png', buffer: backCompressed};
-const backgroundAtlasData = {image: 'background.png', frames: [{
-    filename: 'background',
-    frame: { x: 0, y: 0, w: backScaled.getWidth(), h: backScaled.getHeight() }
-}]};
+const backgroundTexture = { name: 'background.png', buffer: backCompressed };
+const backgroundAtlasData = {
+    image: 'background.png', frames: [{
+        filename: 'background',
+        frame: { x: 0, y: 0, w: backScaled.getWidth(), h: backScaled.getHeight() }
+    }]
+};
 
 const exportDir = path.join('public', 'assets');
 rmSync(exportDir, { force: true, recursive: true });
@@ -138,5 +140,29 @@ writeFileSync(path.join(exportDir, 'multiatlas.json'), JSON.stringify({
 console.log('Exported multiatlas.json.');
 writeFileSync(path.join(exportDir, 'anims.json'), JSON.stringify({ anims: animsData }));
 console.log('Exported anims.json.');
+
+console.log('Processing audio files.');
+const audioExportDir = 'assets/audio/';
+mkdirSync(path.join('public', audioExportDir), { recursive: true });
+const audioSources = ['assets/Audio/Building', 'assets/Audio/Nefties'];
+const audioAssets = audioSources.map(src => readdirSync(src).map(file => {
+    const { name } = path.parse(file);
+    const targetPath = path.join(audioExportDir, file);
+    copyFileSync(path.join(src, file), path.join('public', targetPath));
+    return {
+        path: targetPath,
+        id: name,
+    };
+})).flat();
+
+const audioFiles = [];
+for (const audio of audioAssets) {
+    audioFiles.push({ type: 'audio', key: audio.id, url: [audio.path] });
+}
+
+writeFileSync(path.join(exportDir, 'audiopack.json'), JSON.stringify({
+    audio: { files: audioFiles }
+}));
+console.log('Exported audiopack.json.');
 
 console.log('Done.');

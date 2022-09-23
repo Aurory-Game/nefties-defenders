@@ -1,4 +1,4 @@
-import { ENTITIES, EntityState, EntityType, SkinType } from 'shared/entities';
+import { AudioType, ENTITIES, EntityState, EntityType, SkinType } from 'shared/entities';
 import { FIELD_TILES_HEIGHT, FIELD_TILE_SIZE, TIMESTEP } from 'shared/constants';
 import Interpolator from 'util/Interpolator';
 
@@ -13,6 +13,9 @@ export default class EntityRender {
     readonly maxHitpoints:number;
     sprite:Phaser.GameObjects.Sprite;
     skin:SkinType;
+    audio:AudioType;
+    attackDelay:number;
+    attackSfxDelayed:Phaser.Time.TimerEvent;
     dir:string;
     state:EntityState;
 
@@ -22,12 +25,21 @@ export default class EntityRender {
         const size = data.size.size * FIELD_TILE_SIZE;
         const color = isOurs ? 0x3333cc : 0xcc3333;
         const color2 = isOurs ? 0x0000ff : 0xff0000;
+        this.audio = data.audio;
+        this.attackDelay = data.hitSpeed;
         if (data.skin) {
             this.skin = data.skin;
             this.sprite = scene.add.sprite(0, 0, 'img');
             this.root.add(this.sprite);
             this.sprite.setPipeline(isOurs ? 'blueOutline' : 'redOutline');
             if (this.skin.moving === true) {
+                if (this.audio.attack) {
+                    const playAttack = () => {
+                        if (this.state === EntityState.ATTACKING) this.root.scene.sound.play(this.audio.attack[0]);
+                    };
+                    this.sprite.on(Phaser.Animations.Events.ANIMATION_START, playAttack);
+                    this.sprite.on(Phaser.Animations.Events.ANIMATION_REPEAT, playAttack);
+                }
                 this.dir = isOurs ? '0' : '4';
                 this.sprite.setFXPadding(4);
             } else {
@@ -57,6 +69,10 @@ export default class EntityRender {
         this.hitpointsInterpolator = new Interpolator(TIMESTEP * 2, TIMESTEP, 2);
         this.hitpointsInterpolator.add(0, data.hitpoints);
         this.maxHitpoints = data.hitpoints;
+        this.root.once(Phaser.GameObjects.Events.DESTROY, () => {
+            this.attackSfxDelayed?.destroy();
+            this.attackSfxDelayed = null;
+        });
     }
 
     addMarker() {
@@ -96,6 +112,7 @@ export default class EntityRender {
         if (this.sprite && this.skin.moving === true) {
             switch (state) {
             case EntityState.SPAWNING:
+                if (this.audio.spawn) this.root.scene.sound.play(this.audio.spawn);
                 this.sprite.play(`${this.skin.key}-Spawn${this.dir}`);
                 break;
             case EntityState.ATTACKING:
@@ -110,10 +127,24 @@ export default class EntityRender {
                 this.sprite.play(`${this.skin.key}-Idle4`);
                 break;
             }
+        } else if (!this.skin.moving && this.audio.attack) { // A building.
+            this.checkAttackSfx();
+        }
+    }
+
+    checkAttackSfx() {
+        if (this.state === EntityState.ATTACKING) {
+            this.root.scene.sound.play(Phaser.Utils.Array.GetRandom(this.audio.attack));
+            this.attackSfxDelayed = this.root.scene.time.delayedCall(
+                this.attackDelay * 1000, this.checkAttackSfx, [], this);
+        } else {
+            this.attackSfxDelayed?.destroy();
+            this.attackSfxDelayed = null;
         }
     }
 
     destroy(instant:boolean) {
+        if (this.audio.death) this.root.scene.sound.play(this.audio.death);
         this.hitpointsTx.setText('');
         if (!instant && this.sprite) {
             if (this.skin.moving === true) {
