@@ -158,6 +158,9 @@ export default class EntityRender {
                 this.sprite.setFrame(key);
                 this.sprite.setOrigin(originX, originY);
                 this.sprite.resetPipeline();
+                if (!this.isOurs) {
+                    this.root.scene.sound.play('DEF_UI_AwardPoint_01', { volume: 1.5 });
+                }
             }
         } else {
             this.root.destroy();

@@ -160,7 +160,7 @@ async function convertToAac(src, outFile) {
 
 const audioExportDir = 'assets/audio/';
 mkdirSync(path.join('public', audioExportDir), { recursive: true });
-const audioSources = ['assets/Audio/Building', 'assets/Audio/Nefties'];
+const audioSources = ['assets/Audio/Building', 'assets/Audio/Nefties', 'assets/Audio/UI'];
 const audioAssets = await Promise.all(audioSources.map(src => readdirSync(src).map(async file => {
     const { name, ext } = path.parse(file);
     const srcPath = path.join(src, file);
