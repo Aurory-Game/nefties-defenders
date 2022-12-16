@@ -126,6 +126,35 @@ export default class Game extends Phaser.Scene {
         this.entities.get(key)?.setState(state);
     }
 
+    projectile(attacker:string, victim:string) {
+        const from = this.entities.get(attacker);
+        const to = this.entities.get(victim);
+        if (from && to) {
+            from.playAttackSfx?.();
+            const src = from.root.getBounds();
+            const target = to.root.getBounds();
+            const obj = this.add.circle(src.centerX, src.centerY, 6, 0xee2222);
+            obj.depth = 2;
+            this.tweens.add({
+                targets: obj,
+                x: target.centerX,
+                y: target.centerY,
+                duration: Phaser.Math.Distance.Between(
+                    src.centerX, src.centerY,
+                    target.centerX, target.centerY
+                ) * 3,
+                onUpdate: (tween:Phaser.Tweens.Tween) => {
+                    if (to.root) {
+                        to.root.getBounds(target);
+                        tween.updateTo('x', target.centerX, false);
+                        tween.updateTo('y', target.centerY, false);
+                    }
+                },
+                onComplete: () => obj.destroy()
+            });
+        }
+    }
+
     showMsg(tx:string, isError:boolean = true) {
         const text = this.add.text(this.scale.width / 2, this.scale.height * 0.33, tx, {
             fontSize: '28px',

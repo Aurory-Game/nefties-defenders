@@ -32,6 +32,7 @@ class RoomManager {
         this.room.onStateChange(sync => this.onSyncChange(sync));
         this.room.onMessage(MessageKind.CARD_HAND, msg => this.gameplay.hand.onCardHand(msg));
         this.room.onMessage(MessageKind.PLAY_CARD_RESULT, msg => this.gameplay.hand.onPlayCardResult(msg));
+        this.room.onMessage(MessageKind.PROJECTILE, msg => this.gameplay.onProjectile(msg));
         this.room.onMessage(MessageKind.GAME_OVER,
             msg => this.roundResult = msg.winner ? (this.gameplay.ourKey == msg.winner) : null);
         this.sync.listen('state', state => {

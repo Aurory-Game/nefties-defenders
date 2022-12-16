@@ -1,6 +1,6 @@
 import { Room } from 'colyseus.js';
 import { FIELD_TILES_HEIGHT, FIELD_TILES_WIDTH, FIELD_TILE_SIZE, isWater } from 'shared/constants';
-import { MessageKind, sendMessage } from 'shared/messages';
+import { MessageKind, MessageType, sendMessage } from 'shared/messages';
 import Game from 'scenes/Game';
 import CardHand from './CardHand';
 import { EntitySync } from 'schema/EntitySync';
@@ -52,6 +52,10 @@ export default class ClientGameplay {
         this.flipIfNeeded(placement); // Flip to rendering coordinates.
         this.game.updateDummy(id, this.hand.cards[index], placement);
         return isDone || placement.type == Placement.BELOW_LINE;
+    }
+
+    onProjectile(msg:MessageType[MessageKind.PROJECTILE]):void {
+        this.game.projectile(msg.attacker, msg.victim);
     }
 
     start(entities:MapSchema<EntitySync>) {

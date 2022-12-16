@@ -267,10 +267,14 @@ const RANGED_RANGE = 4;
 /** The scan view range. How far an entity will pick a target from. */
 export const VIEW_RANGE = 5;
 
+export function isRanged(data:EntityData):boolean {
+    return data.range >= RANGED_RANGE;
+}
+
 export function canTarget(attacker:EntityType, victim:EntityType):boolean {
     const atk = ENTITIES[attacker];
     const vic = ENTITIES[victim];
-    return !vic.isFlying || atk.isFlying || atk.range > RANGED_RANGE;
+    return !vic.isFlying || atk.isFlying || isRanged(atk);
 }
 
 export enum EntityState {

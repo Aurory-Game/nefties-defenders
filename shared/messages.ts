@@ -5,6 +5,7 @@ export enum MessageKind {
     PLAY_CARD,
     PLAY_CARD_RESULT,
     GAME_OVER,
+    PROJECTILE,
 }
 
 export type MessageType = {
@@ -28,6 +29,10 @@ export type MessageType = {
     },
     [MessageKind.GAME_OVER]:{
         winner?:string
+    },
+    [MessageKind.PROJECTILE]:{
+        attacker:string,
+        victim:string,
     },
 }
 

@@ -125,6 +125,14 @@ export default class ServerLogicEngine {
             }
         }
         this.entityManager.update(this.sync.tick);
+        for (const e of this.entityManager.events) {
+            if (e.type === 'projectile') {
+                broadcastMessage(this.room, MessageKind.PROJECTILE, {
+                    attacker: e.attacker,
+                    victim: e.victim
+                });
+            }
+        }
         for (const [key, entity] of this.entities) {
             if (entity.sync.hp <= 0) {
                 this.entities.delete(key);
@@ -218,6 +226,7 @@ export default class ServerLogicEngine {
             break;
         }
         const logicData:EntityLogicData = {
+            id,
             owner,
             geom,
             data,
@@ -242,6 +251,7 @@ type PlayerData = {
 }
 
 export type EntityLogicData = {
+    id:string,
     sync:EntitySync,
     owner:PlayerData,
     geom:SAT.Circle|SAT.Polygon,

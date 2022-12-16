@@ -2,17 +2,21 @@ import { FIELD_TILES_HEIGHT, FIELD_TILES_HEIGHT_MID, FIELD_TILES_WIDTH_MID, LEFT
     TICKS_1S, TIMESTEP_S } from '../../../shared/constants';
 import { EntityLogicData } from './ServerLogicEngine';
 import * as SAT from 'sat';
-import { EntityState, EntityType, VIEW_RANGE, canTarget } from '../../../shared/entities';
+import { EntityState, EntityType, VIEW_RANGE, canTarget, isRanged } from '../../../shared/entities';
 import Field from './Field';
 import { Point } from 'navmesh';
+import { LogicEvent } from './events';
 
 export default class EntityManager {
 
     entities:EntityLogicData[] = [];
 
+    events:LogicEvent[] = [];
+
     constructor(public field:Field) { }
 
     update(tick:number) {
+        this.events.length = 0;
         this.ai(tick);
         collideEntities(this.entities);
         for (const entity of this.entities) if (entity.geom instanceof SAT.Circle) {
@@ -38,7 +42,13 @@ export default class EntityManager {
                 case EntityState.ATTACKING:
                     if (entity.target) {
                         entity.target.sync.hp -= entity.data.damage;
-                        // TODO projectile events.
+                        if (isRanged(entity.data)) {
+                            this.events.push({
+                                type: 'projectile',
+                                attacker: entity.id,
+                                victim: entity.target.id
+                            });
+                        }
                     }
                     break;
                 }
