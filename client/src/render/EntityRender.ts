@@ -18,6 +18,7 @@ export default class EntityRender {
     attackSfxDelayed:Phaser.Time.TimerEvent;
     dir:string;
     state:EntityState;
+    shadow:Phaser.GameObjects.Arc;
 
     constructor(scene:Phaser.Scene, type:EntityType, private isOurs:boolean) {
         this.root = scene.add.container(0, 0);
@@ -33,6 +34,7 @@ export default class EntityRender {
             this.root.add(this.sprite);
             this.sprite.setPipeline(isOurs ? 'blueOutline' : 'redOutline');
             if (this.skin.moving === true) {
+                this.shadow = scene.add.circle(0, 0, data.size.size * 30, 0x232323, 0.4);
                 if (this.audio.attack) {
                     const playAttack = () => {
                         if (this.state === EntityState.ATTACKING) this.root.scene.sound.play(this.audio.attack[0]);
@@ -101,6 +103,11 @@ export default class EntityRender {
     setPos(tileX:number, tileY:number) {
         this.root.setPosition(tileX * FIELD_TILE_SIZE, tileY * FIELD_TILE_SIZE);
         this.root.setDepth(tileY / FIELD_TILES_HEIGHT);
+        if (this.shadow) {
+            const bounds = this.root.getBounds();
+            this.shadow.setDepth(this.root.depth - 1);
+            this.shadow.setPosition(bounds.centerX, bounds.bottom);
+        }
     }
 
     setState(state:EntityState) {
@@ -151,7 +158,7 @@ export default class EntityRender {
             if (this.skin.moving === true) {
                 const num = this.isOurs ? 0 : 4;
                 this.sprite.play(`${this.skin.key}-Death${num}`);
-                this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => this.root.destroy());
+                this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => this.destroyNow());
             } else {
                 this.cancelSfxQueue();
                 const { key, originX, originY } = this.isOurs ? this.skin.destroyed.our : this.skin.destroyed.opponent;
@@ -163,7 +170,12 @@ export default class EntityRender {
                 }
             }
         } else {
-            this.root.destroy();
+            this.destroyNow();
         }
+    }
+
+    private destroyNow() {
+        this.root.destroy();
+        this.shadow?.destroy();
     }
 }
