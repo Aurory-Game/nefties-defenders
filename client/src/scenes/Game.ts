@@ -45,6 +45,7 @@ export default class Game extends Phaser.Scene {
         for (const entity of this.entities.values()) {
             entity.update(time);
         }
+        this.field.root.sort('depth');
     }
 
     updateText(gameState:GameState, secondsLeft:number) {
