@@ -9,8 +9,9 @@ export default class PlayerDeck {
     private hand:CardId[];
 
     constructor() {
-        this.deck = dummyDeck.slice();
+        this.deck = uniqueCards.concat();
         this.shuffle();
+        this.deck.length = 8;
         this.hand = this.deck.splice(0, HAND_SIZE);
         this.deckIndex = 0;
     }
@@ -50,27 +51,15 @@ export default class PlayerDeck {
     }
 }
 
-/** Dummy deck for the prototype. Every player has the same deck. */
-const dummyDeck:CardId[] = [
-    CardId.Beeblock,
-    CardId.Beeblock,
+const uniqueCards:CardId[] = [
     CardId.Beeblock,
     CardId.Bitebit,
-    CardId.Bitebit,
-    CardId.BlockChoy,
     CardId.BlockChoy,
     CardId.BloomTail,
-    CardId.BloomTail,
-    CardId.ChocoMint,
     CardId.ChocoMint,
     CardId.Dinobit,
-    CardId.Dinobit,
-    CardId.Dipking,
     CardId.Dipking,
     CardId.ShibaIgnite,
     CardId.Unika,
-    CardId.Unika,
-    CardId.Zzoo,
-    CardId.Zzoo,
     CardId.Zzoo,
 ];
